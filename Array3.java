@@ -1,6 +1,7 @@
-connection established, yes
+Number of columns in results 51
+Number of column names 51
 Traceback (most recent call last):
-  File "D:\RPA\Prerna\Investor Rules\InvestorRulesdevDB.py", line 41, in <module>
+  File "D:\RPA\Prerna\Investor Rules\InvestorRulesdevDB.py", line 42, in <module>
     df = pd.DataFrame(results, columns=column_names)
   File "C:\Users\luthrapr\AppData\Roaming\Python\Python39\site-packages\pandas\core\frame.py", line 798, in __init__
     mgr = ndarray_to_mgr(
