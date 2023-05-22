@@ -1,38 +1,27 @@
-package yayyy;
+import pyodbc
 
-import java.util.Scanner;
+# def IncomeCalculatordb(loanNum):
+def read_query(file_path):
+    with open(file_path, 'r') as file:
+        query = file.read()
+    return query
 
-public class ArrayIntersection {
-	public static void intersections(int arr[],int arr2[])  {
-		
-		for(int i=0;i<arr.length;i++)
-	    {
-	        for(int j=0;j<arr2.length;j++)
-	        {
-	            if(arr[i]==arr2[j])
-	            {
-	                
-	                System.out.println(arr[i]);
-	                break;
-	            }
-	        }
-	    }
-}
+query_file_path = '/application/Query.txt'
+# filename = 'data.xlsx'   
+query = read_query(query_file_path)
+print(query)
 
-	
-		 static Scanner s = new Scanner(System.in);
-	   public static int[] takeInput() {
-			int size = s.nextInt();
-			int arr[] = new int[size];
-			for (int i = 0; i < size; i++) {
-				arr[i] = s.nextInt();
-			}
-			return arr;
-		}
-		
-		public static void main(String[] args) {
-			int[] arr1 = takeInput();
-			int[] arr2 = takeInput();
-			intersections(arr1, arr2);
-		}
-}
+drivers = [item for item in pyodbc.drivers()]
+print("Establishing connection")
+print("############### DRIVERS",drivers)
+driver = drivers[0]
+server = '10.222.22.22'
+database = 'InvestorRulesMSP'
+uid = 'xxxx'
+pwd = 'xxxx'
+SSO = 'Trusted_Connection=yes'
+timeout = '30'
+con_string = f'driver={driver};server={server};database={database};uid={uid};pwd={pwd};'
+cnxn = pyodbc.connect(con_string)
+cursor = cnxn.cursor()
+print("connection established")
