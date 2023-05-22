@@ -1,26 +1,11 @@
-
-# Establish the database connection
-cnxn = pyodbc.connect(con_string)
-cursor = cnxn.cursor()
-
-# Execute the query
-cursor.execute(query)
-
-# Get the column names
-column_names = [column[0] for column in cursor.description]
-
-# Fetch all the results
-results = cursor.fetchall()
-
-# Create a DataFrame from the results and column names
-df = pd.DataFrame(results, columns=column_names)
-
-# Save the DataFrame to an Excel file
-output_file_path = '/application/Output.xlsx'
-df.to_excel(output_file_path, index=False)
-
-# Close the cursor and connection
-cursor.close()
-cnxn.close()
-
-print(f"Results saved to '{output_file_path}'")
+connection established, yes
+Traceback (most recent call last):
+  File "D:\RPA\Prerna\Investor Rules\InvestorRulesdevDB.py", line 41, in <module>
+    df = pd.DataFrame(results, columns=column_names)
+  File "C:\Users\luthrapr\AppData\Roaming\Python\Python39\site-packages\pandas\core\frame.py", line 798, in __init__
+    mgr = ndarray_to_mgr(
+  File "C:\Users\luthrapr\AppData\Roaming\Python\Python39\site-packages\pandas\core\internals\construction.py", line 337, in ndarray_to_mgr
+    _check_values_indices_shape_match(values, index, columns)
+  File "C:\Users\luthrapr\AppData\Roaming\Python\Python39\site-packages\pandas\core\internals\construction.py", line 408, in _check_values_indices_shape_match
+    raise ValueError(f"Shape of passed values is {passed}, indices imply {implied}")
+ValueError: Shape of passed values is (17, 1), indices imply (17, 51)
