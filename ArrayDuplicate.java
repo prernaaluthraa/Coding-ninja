@@ -1,49 +1,12 @@
-package yayyy;
+BOT to change the date daily while running the attached SQL query for below highlighted field . ( BOT to change the date as per last run date  )
+For Example : 
+i. BOT run the SQL query on Friday i.e. 04/14/2023 than date on below query needs to be change to 04/13/2023 ( as last SQL run date )
+ii. BOT run the SQL query on Monday i.e. 04/17/2023 than date on below query need to be change to 04/14/2023 ( as last SQL run date )
 
-import java.util.Scanner;
-
-public class ArrayDuplicate {
-	
-	public static int duplicate(int[] arr){
-		int b=0;//in which we will store the duplicate elements
-	
-		int count=0;//no of times element occur
-		
-		for(int i=0;i<arr.length;i++)//to call every element once
-		{
-			count=1;//a no. exists atleast once
-			for(int j=i+1;j<arr.length;j++)//counting once again
-			{
-				if(arr[i]==arr[j])
-					{ 
-					count++;
-					}
-				
-			}
-		
-		if(count>1)
-		{
-			b=arr[i];
-			
-		}
-		
-	}
-	return b;
- }
-
-
-	public static int[] takeInput() {
-		Scanner s = new Scanner(System.in);
-		int size = s.nextInt();
-		int arr[] = new int[size];
-		for (int i = 0; i < size; i++) {
-			arr[i] = s.nextInt();
-		}
-		return arr;
-	}
-	
-	public static void main(String[] args) {
-		int[] arr = takeInput();
-		System.out.print(duplicate(arr));
-	}
-}
+Date need to be change to below as per provided SQL query
+WHERE
+	M.[ReviewedByDateTime] >= '04/01/23'
+	OR F.[ReviewedByDateTime] >= '04/01/23'
+	OR DIL.[ReviewedByDateTime] >= '04/01/23'
+	OR S.[ReviewedByDateTime] >= '04/01/23'
+Copy and paste the Attached SQL > Click on F5
