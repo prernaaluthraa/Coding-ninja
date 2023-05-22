@@ -1,71 +1,55 @@
+import pyodbc
 import pandas as pd
-import os
-import time
-import sys
-sys.path.append('/application/RPA/COMMON/MODULE') 
-import RQ_API
-from datetime import datetime
+import openpyxl
 
+# def IncomeCalculatordb(loanNum):
+def read_query(file_path):
+    with open(file_path, 'r') as file:
+        query = file.read()
+    return query
 
-def loadData(obj):
-    if obj.TransactionData is None:
-        try:
-            setup(obj)
-            retry_count_query=0
-            query_flag=True
-            file1 = open(obj.config['REQUIRED']+'QUERY.TXT',"r")  ##### READ THE QUERY
-            query=file1.read()
-            query=str(query)
-            response=RQ_API.request(query,'ReverseQuest') #### SEND API REQUEST
+query_file_path = 'D:/RPA/Prerna/catalyst reporting/Query.txt'
+# filename = 'data.xlsx'   
+query = read_query(query_file_path)
+print(query)
 
-            while(query_flag):
-                print("###########",response)
-                obj.printlog.info(response)
-                if response['MESSAGE']=='Query executed successfully':
-                    obj.printlog.info(str(response['MESSAGE'])+","+str(response['HTTP_STATUS_CODE']))
-                    query_flag=False
-                    df = pd.DataFrame(response['VALUES'],columns = ['loan_skey','original_loan_number','fha_case_number','LOAN_STATUS','LOAN_SUB_STATUS','task_description','status_description','workflow_manager','responsible_party_id','WF_TYPE','Workflow_Status','START_DATE','DUE_DATE','COMPLETE_DATE'])
-                    obj.InputFile='InputFile_'+datetime.now().strftime('%m-%d-%Y')+'.csv'
-                    df.to_csv(obj.config['M_IN']+obj.InputFile)
-                    data=df
-                    data1=pd.DataFrame()
-                    data1['Loan Skey']=data['loan_skey']
-                    data1['FHA_CASE_NO']=data['fha_case_number']
-                    data1['Loan #']=data['original_loan_number']
-                    data1['WORKFLOW_TYPE']=data['WF_TYPE']
-                    data1['COMP_DATE']=data['COMPLETE_DATE']
-                    data1['TSK_DESCRIPTION']=data['task_description']
-                    obj.TransactionData=data1
-                    obj.TransactionData=obj.TransactionData.values.tolist()
-                    #obj.TransactionData=obj.TransactionData[:1]  #### CHANGE IN PROD
-                    obj.printlog.info('Data Read Success!')
+drivers = [item for item in pyodbc.drivers()]
+print("Establishing connection")
+print("############### DRIVERS",drivers)
+driver = drivers[0]
+server = '10.92.0.80'
+database = 'InvestorRulesMSP'
+uid = 'cccccc'
+pwd = 'xxxx'
+SSO = 'Trusted_Connection=yes'
+timeout = '30'
+con_string = f'driver={driver};server={server};database={database};uid={uid};pwd={pwd};'
+cnxn = pyodbc.connect(con_string)
+print("connection established")
+cursor = cnxn.cursor()
+print("connection established, yes")
 
-                elif response['MESSAGE']!='Query executed successfully':
-                    if retry_count_query<int(obj.config['MAX_RETRY_COUNT']):
-                        retry_count_query+=1
-                        obj.printlog.info(str(retry_count_query))
-                        continue
-                    else:
-                        obj.printlog.info(str(response['MESSAGE'])+","+str(response['HTTP_STATUS_CODE']))
-                        query_flag=False
-                        raise
-                    
-                elif response['HTTP_STATUS_CODE'] !=200:
-                    if retry_count_query<int(obj.config['MAX_RETRY_COUNT']):
-                        obj.printlog.info(str(retry_count_query))
-                        retry_count_query+=1
-                        continue
-                    else:
-                        query_flag=False
-                        raise
-                        
-        
-        except Exception as ex:
-            raise Exception("ERROR GETTING INPUT FILE FROM RQ DATABASE")
+# Execute the query
+cursor.execute(query)
 
-    if obj.TransactionNumber<=len(obj.TransactionData):
-        obj.TransactionItem=obj.TransactionData[obj.TransactionNumber-1]
-        obj.TransactionData1=obj.TransactionItem[0]
-        obj.outputfile = obj.metrics.createOutputFile(obj)
-    else:
-        obj.TransactionItem=None
+# Get the column names
+column_names = [column[0] for column in cursor.description]
+
+# Fetch all the results
+results = cursor.fetchall()
+print("Number od columns in results",len(results[0]))
+print("Number of column names",len(column_names))
+
+# data = [tuple(row) for row in results]
+# Create a DataFrame from the results and column names
+df = pd.DataFrame(columns = ['INVESTOR_ID','INVESTOR_DEAL_NAME','INVESTOR_CATEGORY','MOD_ALLOWED','STREAMLINE_ALLOWED','INVESTOR_APPROVAL_REQUIRED','PROPRIETARY_MOD_DISCOUNT_APPROVAL_REQUIRED','NON_INTERST_BEARING_BALLOON_ALLOWED','INTEREST_RATE_REDUCTION_ALLOWED','INTEREST_BEARING_BALLOON_ALLOWED','MATURITY_EXTEMSION_ALLOWED','DEFERMENT_ALLOWED','FORGIVENESS_ALLOWED','ADDINTERIMMONTH','SHORT_SALE_ALLOWED','SHORT_SALE_DELEGATED','DEED_IN_LIEU_ALLOWED','DIL_DELEGATED','FORBEARANCE_ALLOWED','MESSAGE','INTEREST_RATE_REDUCTION_INCREMENTS','FLOOR_RATE','MARKET_RATE_TYPE','NUMBER_OF_MODS_ALLOWED','NUMBER_CAPITALIZATIONS_ALLOWED','MAX_TERM','MINIMUM_CREDIT_SCORE','TRIAL_DURATION','FORGIVENESS_UPB_LIMIT_PERCENTAGE','FORGIVENESS_LOWER_LTV_LIMIT','SYSDATE','MATURITY_DATE_RESTRICTION','MIN_DAYS_DELINQUENT','IMMINENT_DEFAULT_MAX_DAYS_DELINQUENT','MIN_PRE_MOD_DTI','MIN_POST_MOD_DTI','MAXIMUM_POST_MOD_DTI','MINIMUM_PRE_MOD_LTV','FORBEARANCE_LTV_LOWER_LIMIT','FORBEARANCE_UPB_LIMIT_PERCENTAGE','PAYMENT_REDUCTION_PERCENTAGE','DECREMENTS_FOR_FORBEARANCE_FORGIVENESS','MAX_EVAL_DAY_OF_THE_MONTH','STREAMLINE_MIN_DAYS_DELINQUENT','MATURITY_DATE_EXTENTIONS_BY_MONTH','CREDIT_BUREAU_EXPIRATION_DAYS','CREDIT_BUREAU_MIN_DAYS_DELINQUENT','MODLASTUPDATE','FBLASTUPDATE','DILLASTUPDATE','SSLASTUPDATE'])
+
+# Save the DataFrame to an Excel file
+output_file_path = 'D:/RPA/Prerna/Investor Rules/DBinput.xlsx'
+df.to_excel(output_file_path, index=False)
+
+# Close the cursor and connection
+cursor.close()
+cnxn.close()
+
+print(f"Results saved to '{output_file_path}'")
