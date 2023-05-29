@@ -99,4 +99,4 @@
 'CREDIT_BUREAU_EXPIRATION_DAYS_Updated ( Yes/No )'
 'CREDIT_BUREAU_MIN_DAYS_DELINQUENT_Updated ( Yes/No )'
 
-obj.row[obj.headerlist.index('INVESTOR_ID')]=obj.investor_id
+obj.market_val_availbility=obj.row[obj.headerlist.index('Market Value available within validity (Yes / No)')]
