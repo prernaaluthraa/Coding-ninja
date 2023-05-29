@@ -22,3 +22,7 @@
         self.driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
         params = {'cmd':'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': download_dir}}
         self.driver.execute("send_command", params)
+Error while landing to Login page 'WebDriver' object has no attribute 'find_element_by_xpath'
+2023-05-29 07:59:11|INFO    |luthrapr|In finally for bkfs login
+2023-05-29 07:59:11|INFO    |luthrapr|Usage of Shared Memory: DISABLED
+2023-05-29 07:59:11|INFO    |luthrapr|Applicable driver not found; attempting to install with Selenium Manager (Beta)
