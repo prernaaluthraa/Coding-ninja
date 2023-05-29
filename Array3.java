@@ -49,3 +49,5 @@
 'FBLASTUPDATE'
 'DILLASTUPDATE'
 'SSLASTUPDATE'
+
+obj.investor_id=obj.InputData['INVESTOR_ID'][obj.TransactionNumber-1]
