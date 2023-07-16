@@ -90,3 +90,12 @@ def cleanup(obj):
     except Exception as ex:
         obj.SystemException = "Cleanup Script failed. Please look into it."
         raise Exception("Error:", str(ex))
+
+
+
+ shutil.move(file_path, temp_folder_path)
+  File "/usr/local/lib/python3.9/shutil.py", line 823, in move
+    raise Error("Destination path '%s' already exists" % real_dst)
+shutil.Error: Destination path '/application/RPA/COMMON/CleanupFiles/DeletedFiles/temp_20230716-185400/2607492802.pdf' already exists
+
+
