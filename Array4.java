@@ -1,27 +1,92 @@
-# Save DataFrame to Excel
-InputFile = 'InputFile_' + datetime.now().strftime('%m-%d-%Y') + '.xlsx'
-df.to_excel('D:/RPA/Prerna/Investor Rules/' + InputFile, index=False)
+import os
+import time
+import csv
+import shutil
 
-# Load the Excel file using openpyxl
-wb = openpyxl.load_workbook('D:/RPA/Prerna/Investor Rules/' + InputFile)
+def cleanup(obj):
+    try:
+        rpa_path = "/application/RPA"
+        folders_to_check = ["LOGS", "SCREENSHOTS", "ARCHIVE", "OUT"]
+        three_days_ago = time.time() - (90 * 24 * 60 * 60)
+        seven_days_ago = time.time() - (7 * 24 * 60 * 60)
+        log_count = 0
+        screenshot_count = 0
+        others_count = 0
+        size = 0
 
-# Select the active sheet
-sheet = wb.active
+        output_filename = "/application/RPA/COMMON/CleanupFiles/LOGS/output_" + time.strftime("%Y%m%d-%H%M%S") + ".csv"
+        with open(output_filename, 'w', newline='') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerow(["Action", "File Path", "Modification Date"])
 
-# Apply formatting to column headers
-header_font = styles.Font(color="FFFFFF", bold=True)
-header_fill = styles.PatternFill(fill_type="solid", fgColor="000000")
+            # Get disk storage before running the script
+            total_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+            free_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
 
-for col_idx, column_name in enumerate(column_names, start=1):
-    cell = sheet.cell(row=1, column=col_idx)
-    cell.font = header_font
-    cell.fill = header_fill
+            # Convert sizes to human-readable format
+            total_before_str = f"{total_before / (1024 ** 3):.2f} GB"
+            free_before_str = f"{free_before / (1024 ** 3):.2f} GB"
 
-# Save the modified Excel file
-wb.save('D:/RPA/Prerna/Investor Rules/' + InputFile)
+            # Print disk storage information before running the script
+            csvwriter.writerow(["Disk Storage Before Script Execution"])
+            csvwriter.writerow(["Total", total_before_str])
+            csvwriter.writerow(["Free", free_before_str])
+            csvwriter.writerow([])  # Empty row for separation
 
-# Close the cursor and connection
-cursor.close()
-cnxn.close()
+            # Create a temporary folder with a timestamp in the name
+            temp_folder_name = "temp_" + time.strftime("%Y%m%d-%H%M%S")
+            temp_folder_path = os.path.join("/application/RPA/COMMON/deleted_files", temp_folder_name)
+            os.makedirs(temp_folder_path)
 
-print("Results saved to input file")
+            # Check files in the "deleted_files" folder
+            for folder in os.listdir(temp_folder_path):
+                folder_path = os.path.join(temp_folder_path, folder)
+                if os.path.isdir(folder_path) and os.path.getctime(folder_path) < seven_days_ago:
+                    # Delete files in the folder
+                    for file in os.listdir(folder_path):
+                        file_path = os.path.join(folder_path, file)
+                        if os.path.isfile(file_path):
+                            csvwriter.writerow(["Deleting file", file_path, ""])
+                            os.remove(file_path)
+                    # Delete the folder
+                    os.rmdir(folder_path)
+
+            # Continue with the existing code to move files older than 90 days
+            for root, dirs, files in os.walk(rpa_path):
+                for folder_name in folders_to_check:
+                    if folder_name in dirs:
+                        folder_path = os.path.join(root, folder_name)
+                        csvwriter.writerow(["Checking", folder_path, ""])
+
+                        # Move the files to the temporary folder instead of deleting
+                        for filename in os.listdir(folder_path):
+                            file_path = os.path.join(folder_path, filename)
+                            if os.path.isfile(file_path) and os.path.getmtime(file_path) < three_days_ago:
+                                mod_time = os.path.getmtime(file_path)
+                                mod_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mod_time))
+                                csvwriter.writerow(["File path", file_path, mod_date])
+                                shutil.move(file_path, temp_folder_path)
+
+            # Get disk storage after running the script
+            total_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+            free_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
+
+            # Calculate used space
+            used_before = total_before - free_before
+            used_after = total_after - free_after
+
+            # Convert sizes to human-readable format
+            total_after_str = f"{total_after / (1024 ** 3):.2f} GB"
+            used_after_str = f"{used_after / (1024 ** 3):.2f} GB"
+            free_after_str = f"{free_after / (1024 ** 3):.2f} GB"
+
+            # Print disk storage information after running the script
+            csvwriter.writerow([])  # Empty row for separation
+            csvwriter.writerow(["Disk Storage After Script Execution"])
+            csvwriter.writerow(["Total", total_after_str])
+            csvwriter.writerow(["Used", used_after_str])
+            csvwriter.writerow(["Free", free_after_str])
+
+    except Exception as ex:
+        obj.SystemException = "Cleanup Script failed. Please look into it."
+        raise Exception("Error:", str(ex))
