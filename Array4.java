@@ -2,6 +2,7 @@ import os
 import time
 import csv
 import shutil
+import uuid
 
 def cleanup(obj):
     try:
@@ -33,15 +34,15 @@ def cleanup(obj):
             csvwriter.writerow(["Free", free_before_str])
             csvwriter.writerow([])  # Empty row for separation
 
-            # Create a temporary folder with a timestamp in the name
-            temp_folder_name = "temp_" + time.strftime("%Y%m%d-%H%M%S")
-            temp_folder_path = os.path.join("/application/RPA/COMMON/deleted_files", temp_folder_name)
+            # Create a temporary folder with a unique identifier appended to the name
+            temp_folder_name = "temp_" + time.strftime("%Y%m%d-%H%M%S") + "_" + str(uuid.uuid4())
+            temp_folder_path = os.path.join("/application/RPA/COMMON/CleanupFiles/DeletedFiles", temp_folder_name)
             os.makedirs(temp_folder_path)
 
             # Check files in the "deleted_files" folder
             for folder in os.listdir(temp_folder_path):
                 folder_path = os.path.join(temp_folder_path, folder)
-                if os.path.isdir(folder_path) and os.path.getctime(folder_path) < seven_days_ago:
+                if os.path.isdir(folder_path) and os.path.getmtime(folder_path) < seven_days_ago:
                     # Delete files in the folder
                     for file in os.listdir(folder_path):
                         file_path = os.path.join(folder_path, file)
@@ -49,7 +50,7 @@ def cleanup(obj):
                             csvwriter.writerow(["Deleting file", file_path, ""])
                             os.remove(file_path)
                     # Delete the folder
-                    os.rmdir(folder_path)
+                    shutil.rmtree(folder_path)
 
             # Continue with the existing code to move files older than 90 days
             for root, dirs, files in os.walk(rpa_path):
@@ -64,8 +65,21 @@ def cleanup(obj):
                             if os.path.isfile(file_path) and os.path.getmtime(file_path) < three_days_ago:
                                 mod_time = os.path.getmtime(file_path)
                                 mod_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mod_time))
+                                
+                                # Generate a unique identifier for the destination filename
+                                unique_filename = str(uuid.uuid4()) + "_" + filename
+                                move_path = os.path.join(temp_folder_path, unique_filename)
+                                
                                 csvwriter.writerow(["File path", file_path, mod_date])
-                                shutil.move(file_path, temp_folder_path)
+                                
+                                # Check if the destination file already exists
+                                while os.path.exists(move_path):
+                                    # Append a unique identifier to the filename
+                                    unique_filename = str(uuid.uuid4()) + "_" + filename
+                                    move_path = os.path.join(temp_folder_path, unique_filename)
+                                
+                                # Move the file to the temporary folder with the unique filename
+                                shutil.move(file_path, move_path)
 
             # Get disk storage after running the script
             total_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
@@ -90,12 +104,3 @@ def cleanup(obj):
     except Exception as ex:
         obj.SystemException = "Cleanup Script failed. Please look into it."
         raise Exception("Error:", str(ex))
-
-
-
- shutil.move(file_path, temp_folder_path)
-  File "/usr/local/lib/python3.9/shutil.py", line 823, in move
-    raise Error("Destination path '%s' already exists" % real_dst)
-shutil.Error: Destination path '/application/RPA/COMMON/CleanupFiles/DeletedFiles/temp_20230716-185400/2607492802.pdf' already exists
-
-
