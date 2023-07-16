@@ -1,19 +1,100 @@
-try:
-    in_message = 'As there are multiple securities in investor code W85 please see below regarding the latest possible maturity date for each category--W85-001 Restriction Date 11/01/2032W85-006 Restriction Date 07/01/2036W85-018 Restriction Date 01/01/2034W85-031 Restriction Date 05/01/2037W85-032 Restriction Date 06/01/2034W85-033 Restriction Date 06/01/2034W85-035 Restriction Date 06/01/2034W85-042 Restriction Date 10/01/2034W85-048 Restriction Date 12/01/2034W85-051 Restriction Date 01/01/2036W85-052 Restriction Date 03/01/2038W85-056 Restriction Date 04/01/2038W85-060 Restriction Date 10/01/2038'
-    # driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    message_element = driver.find_element(By.XPATH, '/html/body/div/div/main/div/div[2]/div/div[2]/div/div/div[3]/form/div[1]/div/div[3]/div/div/div[2]/div/div[1]/div/textarea')
-    message_text = message_element.text
-    print("Text from the message field",message_text)
-    if message_text == in_message:
-        print("message in the bkfs field matched with the output")
-    else:
-        message_element.send_keys(Keys.CONTROL + "a")
-        message_element.send_keys(Keys.BACKSPACE)
-        message_element.send_keys(in_message)
-        print("message replaced.")    
+    def cleanup(obj):
+        try:
 
-except (TimeoutException, StaleElementReferenceException) as e:
-    traceback.print_exc()           
-    print(f"error:{e}")       
-except Exception as ex:
-    raise Exception(f"error:", str(ex)) 
+            rpa_path = "/application/RPA"
+            folders_to_check = ["LOGS", "SCREENSHOTS", "ARCHIVE", "OUT"]
+            three_days_ago = time.time() - (90 * 24 * 60 * 60)
+            log_count = 0
+            screenshot_count = 0
+            others_count = 0
+            size = 0
+
+            output_filename = "/application/RPA/COMMON/CleanupFiles/LOGS/output_" + time.strftime("%Y%m%d-%H%M%S") + ".csv"
+            with open(output_filename, 'w', newline='') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                csvwriter.writerow(["Action", "File Path", "Modification Date"])
+
+                # Get disk storage before running the script
+                total_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+                free_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
+
+                # Convert sizes to human-readable format
+                total_before_str = f"{total_before / (1024 ** 3):.2f} GB"
+                free_before_str = f"{free_before / (1024 ** 3):.2f} GB"
+
+                # Print disk storage information before running the script
+                csvwriter.writerow(["Disk Storage Before Script Execution"])
+                csvwriter.writerow(["Total", total_before_str])
+                csvwriter.writerow(["Free", free_before_str])
+                csvwriter.writerow([])  # Empty row for separation
+
+                for root, dirs, files in os.walk(rpa_path):
+                    for folder_name in folders_to_check:
+                        if folder_name in dirs:
+                            folder_path = os.path.join(root, folder_name)
+                            csvwriter.writerow(["Checking", folder_path, ""])
+
+                            if folder_name == "LOGS":
+                                runlogs_path = os.path.join(folder_path, "RUNLOGS")
+                                if os.path.exists(runlogs_path):
+                                    for filename in os.listdir(runlogs_path):
+                                        file_path = os.path.join(runlogs_path, filename)
+                                        if os.path.isfile(file_path) and os.path.getmtime(file_path) < three_days_ago:
+                                            mod_time = os.path.getmtime(file_path)
+                                            mod_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mod_time))
+                                            csvwriter.writerow(["File path:", file_path, mod_date])
+                                            log_count += 1
+                                            #os.remove(file_path)
+                                else:
+                                    pass 
+
+                            elif folder_name == "SCREENSHOTS":
+                                print(folder_path)
+                                for root, dirs, files in os.walk(folder_path, topdown=True):
+                                    for file in files:
+                                        file_path = os.path.abspath(os.path.join(root, file))
+                                        
+                                        if os.path.isfile(file_path) and os.path.getmtime(file_path) < three_days_ago:
+                                            mod_time = os.path.getmtime(file_path)
+                                            mod_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mod_time))
+                                            csvwriter.writerow(["File path", file_path, mod_date])
+                                            print(file)
+                                            screenshot_count += 1
+                                            #os.remove(file_path)
+                                        
+                                        else:
+                                            pass
+
+                            else:
+                                for filename in os.listdir(folder_path):
+                                    file_path = os.path.join(folder_path, filename)
+                                    if os.path.isfile(file_path) and os.path.getmtime(file_path) < three_days_ago:
+                                        mod_time = os.path.getmtime(file_path)
+                                        mod_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mod_time))
+                                        csvwriter.writerow(["File path", file_path, mod_date])
+                                        others_count += 1
+                                        #os.remove(file_path) 
+
+                # Get disk storage after running the script
+                total_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+                free_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
+
+                # Calculate used space
+                used_before = total_before - free_before
+                used_after = total_after - free_after
+
+                # Convert sizes to human-readable format
+                total_after_str = f"{total_after / (1024 ** 3):.2f} GB"
+                used_after_str = f"{used_after / (1024 ** 3):.2f} GB"
+                free_after_str = f"{free_after / (1024 ** 3):.2f} GB"
+
+                # Print disk storage information after running the script
+                csvwriter.writerow([])  # Empty row for separation
+                csvwriter.writerow(["Disk Storage After Script Execution"])
+                csvwriter.writerow(["Total", total_after_str])
+                csvwriter.writerow(["Used", used_after_str])
+                csvwriter.writerow(["Free", free_after_str])
+
+        except Exception as ex:
+            obj.SystemException = "Cleanup Script failed. Please look into it."
+            raise Exception(f"error:", str(ex))
