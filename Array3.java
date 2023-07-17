@@ -98,3 +98,27 @@
         except Exception as ex:
             obj.SystemException = "Cleanup Script failed. Please look into it."
             raise Exception(f"error:", str(ex))
+
+
+else:
+    print("No results found. Creating empty file with headers.")
+
+    # Create an empty DataFrame with only the column names
+    df = pd.DataFrame(columns=column_names)
+
+    InputFile = 'BKFS PLS Investor Rules Input Data_' + datetime.now().strftime('%m.%d.%Y') + '.xlsx'
+    df.to_excel('/application/RPA/LRPU/PLSInvestorRulesAutomation/IN/' + InputFile, index=False)
+
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+
+    header_font = styles.Font(color="000000", bold=True)
+    header_fill = styles.PatternFill(fill_type="solid", fgColor="FFCC99")
+
+    for col_idx, column_name in enumerate(column_names, start=1):
+        cell = sheet.cell(row=1, column=col_idx)
+        cell.font = header_font
+        cell.fill = header_fill
+
+    wb.save('/application/RPA/LRPU/PLSInvestorRulesAutomation/IN/' + InputFile)
+
