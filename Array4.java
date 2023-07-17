@@ -93,3 +93,11 @@ cursor.close()
 cnxn.close()
 
 print("Results saved to input file")
+
+
+Number od rows in results 0
+Traceback (most recent call last):
+  File "/application/RPA/LRPU/PLSInvestorRulesAutomation/SRC/Framework/InvestorRulesdevDB.py", line 61, in <module>
+    print("Number od columns in results",len(results[0]))
+IndexError: list index out of range
+
