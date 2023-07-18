@@ -31,6 +31,7 @@ class Obj:
         self.SystemException = None
         #self.asset_connection=None
         self.connection=None
+        self.InputFile=None
         #self.formatted_date=None
         self.asset_connection=self.dbConnect('RPA_RO','Rpa#357dtro','ononpexd-scan.corp.ocwen.com','1521','odclrep_atl')
 
@@ -207,10 +208,10 @@ class Obj:
             BODY+=obj.SystemException
         else:
             msg['Subject']=obj.config['PROCESSNAME'] + "Input Data_" + datetime.now().strftime('%m.%d.%Y')
-            BODY+=obj.config['ExchEmailBodySuccess'].replace('AAAAA',str(InputFile.split('/')[-1]))
-            with open(InputFile,'rb') as atch:
-                part=MIMEApplication(atch.read(),Name=InputFile)
-            part['Content-Disposition']='attachment;filename="{}"'.format(InputFile.split('/')[-1])
+            BODY+=obj.config['ExchEmailBodySuccess']
+            with open(obj.InputFile,'rb') as atch:
+                part=MIMEApplication(atch.read(),Name=obj.InputFile)
+            part['Content-Disposition']='attachment;filename="{}"'.format(obj.InputFile.split('/')[-1])
             msg.attach(part)
         BODY+=disclamer
         msg.attach(MIMEText(BODY,'plain'))
@@ -239,4 +240,9 @@ if __name__=="__main__":
     display=Display(visible=0,size=(1366,768))
     display.start()
     main()
-    display.stop()
+    display.stop()    
+
+
+
+with open(obj.InputFile,'rb') as atch:
+TypeError: expected str, bytes or os.PathLike object, not NoneType
