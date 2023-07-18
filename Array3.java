@@ -1,20 +1,38 @@
-results = cursor.fetchall()
-print("Number of rows in results:", len(results))
+    def sendOutlookMail(obj):
+        port = int(obj.config['ExchangePort'])
+        SERVER = obj.config['ExchangeServer']
+        msg=MIMEMultipart('alternative')
+        asset=obj.get_password(obj.config['asset_email'])
+        frm=asset[0]
+        disclamerfile=open(obj.config['COMMON_REQUIRED']+"Disclaimer.htm",'r')
+        disclamer=disclamerfile.read()
+        disclamerfile.close()
+        to=obj.config['ExchEmailTo'].split(";")
+        cc=obj.config['ExchEmailCc'].split(";")
+        msg['From']=frm
+        msg['To']=','.join(to)
+        msg['Cc']=','.join(cc)
+        to+=cc
+        BODY=''
+        if obj.SystemException:
+            msg['Subject']=obj.config['PROCESSNAME']+"  FAILED"
+            BODY+=obj.SystemException
+        else:
+            msg['Subject']=obj.config['PROCESSNAME'] + "  SUCCESS"
 
-# Preprocess the results to handle 'NULL' values
-processed_results = []
-for row in results:
-    processed_row = [value if value != 'NULL' else 'NULL' for value in row]
-    processed_results.append(processed_row)
+            total_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+            free_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
+            total_before_str = f"{total_before / (1024 ** 3):.2f} GB"
+            free_before_str = f"{free_before / (1024 ** 3):.2f} GB"
+            used_before_str = f"{(total_before - free_before) / (1024 ** 3):.2f} GB"
 
-# Create a DataFrame from the processed results and column names if there are rows
-if len(processed_results) > 0:
-    print("Number of columns in results:", len(processed_results[0]))
-    print("Number of column names:", column_names)
+            BODY+=obj.config['ExchEmailBodySuccess']
+            
+            # Calculate disk storage details after script execution
+            total_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+            free_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
+            total_after_str = f"{total_after / (1024 ** 3):.2f} GB"
+            used_after_str = f"{(total_after - free_after) / (1024 ** 3):.2f} GB"
+            free_after_str = f"{free_after / (1024 ** 3):.2f} GB"
 
-    # Create a DataFrame from the processed results and column names
-    df = pd.DataFrame(processed_results, columns=column_names)
-
-    InputFile = 'BKFS PLS Investor Rules Input Data_' + datetime.now().strftime('%m.%d.%Y') + '.xlsx'
-    df.to_excel('/application/RPA/LRPU/PLSInvestorRulesAutomation/IN/' + InputFile, index=False)
-    print("Results saved to input file")
+            BODY+= "<br>Disk Storage Before Script Execution: <br>"
