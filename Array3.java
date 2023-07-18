@@ -31,6 +31,7 @@ class Obj:
         self.SystemException = None
         #self.asset_connection=None
         self.connection=None
+        #self.formatted_date=None
         self.asset_connection=self.dbConnect('RPA_RO','Rpa#357dtro','ononpexd-scan.corp.ocwen.com','1521','odclrep_atl')
 
 
@@ -50,7 +51,16 @@ class Obj:
         except Exception as ex:
             raise Exception("Error Connecting DataBase with Exception :",str(ex))  
 
-    def last_working_date(obj):
+
+
+    def read_query(obj, file_path):
+        with open(file_path, 'r') as file:
+            query = file.read()
+        return query
+
+    def cleanup(obj):
+        query_file_path = '/application/RPA/LRPU/PLSInvestorRulesAutomation/REQUIRED/Query.txt'
+        # filename = 'data.xlsx'
         today = date.today()
         weekday = today.weekday()
 
@@ -61,18 +71,8 @@ class Obj:
 
         formatted_date = last_working_day.strftime("%m/%d/%Y")
         print("Last working day:", formatted_date)
-        return formatted_date
-
-    def read_query(obj, file_path):
-        with open(file_path, 'r') as file:
-            query = file.read()
-        return query
-
-    def cleanup(obj):
-        query_file_path = '/application/RPA/LRPU/PLSInvestorRulesAutomation/REQUIRED/Query.txt'
-        # filename = 'data.xlsx'   
         query = obj.read_query(query_file_path)
-        query = query.replace('date',last_working_date(obj))
+        query = query.replace('date', formatted_date)
         print(query)
 
         drivers = [item for item in pyodbc.drivers()]
@@ -225,7 +225,7 @@ class Obj:
 def main():
     print("Process Started Successfully!")
     obj=Obj("/application/RPA/LRPU/PLSInvestorRulesAutomation/CONFIG/Config.csv")
-    formatted_date = obj.last_working_date()
+
     
     try:
         #call functions here
