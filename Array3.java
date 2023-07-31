@@ -248,3 +248,5 @@ if __name__=="__main__":
   File "/application/RPA/LRPU/PLSInvestorRulesAutomation/SRC/Framework/TestMsgEmail.py", line 214, in sendOutlookMail
     with open(obj.InputFile,'rb') as atch:
 TypeError: expected str, bytes or os.PathLike object, not NoneType
+
+BODY += "<p style='display: inline;'>{}</p> {}".format(obj.config['ExchEmailBodyMsgSuccess'].strip(), datetime.now().strftime('%m.%d.%Y'))
