@@ -250,3 +250,13 @@ if __name__=="__main__":
 TypeError: expected str, bytes or os.PathLike object, not NoneType
 
 BODY += "<p style='display: inline;'>{}</p> {}".format(obj.config['ExchEmailBodyMsgSuccess'].strip(), datetime.now().strftime('%m.%d.%Y'))
+from bs4 import BeautifulSoup
+
+# ... (previous code)
+
+# Use BeautifulSoup to remove <p> tags and extract the text
+soup = BeautifulSoup(obj.config['ExchEmailBodyMsgSuccess'], 'html.parser')
+message_body = soup.get_text().strip()
+
+# Concatenate the message body and the date
+BODY += "{} {}".format(message_body, datetime.now().strftime('%m.%d.%Y'))
