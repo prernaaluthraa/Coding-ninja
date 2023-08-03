@@ -93,3 +93,16 @@ print(form_dict)
 
 form_dict['Appraisal_TYPE'][0] = form_dict['Appraisal_TYPE'][1].replace("Appraisal_TYPE","").strip()
 print(form_dict)
+
+
+
+form_dict['Appraisal_TYPE'][0] = form_dict['Appraisal_TYPE'][0].replace("Appraisal_TYPE","").strip()
+appraisal_type_words = form_dict['Appraisal_TYPE'][0].split()  # Split the string into words
+if len(appraisal_type_words) >= 2:
+    try:
+        form_dict['Appraisal_TYPE'][0] = int(appraisal_type_words[1])  # Convert the 2nd word to an integer
+    except ValueError:
+        form_dict['Appraisal_TYPE'][0] = None  # Handle the case where conversion fails
+else:
+    form_dict['Appraisal_TYPE'][0] = None  # Set to None if there are less than 2 words
+print(form_dict)
