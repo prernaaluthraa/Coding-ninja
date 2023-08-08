@@ -192,3 +192,10 @@ obj.row[obj.headerlist.index('STREAMLINE_MIN_DAYS_DELINQUENT_Updated ( Yes/No )'
 obj.row[obj.headerlist.index('MATURITY_DATE_EXTENTIONS_BY_MONTH_Updated ( Yes/No )')] = obj.MATURITY_DATE_EXTENTIONS_BY_MONTH_Updated
 obj.row[obj.headerlist.index('CREDIT_BUREAU_EXPIRATION_DAYS_Updated ( Yes/No )')] = obj.CREDIT_BUREAU_EXPIRATION_DAYS_Updated
 obj.row[obj.headerlist.index('CREDIT_BUREAU_MIN_DAYS_DELINQUENT_Updated ( Yes/No )')] = obj.CREDIT_BUREAU_MIN_DAYS_DELINQUENT_Updated
+
+
+
+    obj.investor_id = obj.InputData['INVESTOR_ID'][obj.TransactionNumber-1]
+    obj.investor_deal_name = obj.InputData['INVESTOR_DEAL_NAME'][obj.TransactionNumber-1]
+    obj.investor_category = obj.InputData['INVESTOR_CATEGORY'][obj.TransactionNumber-1]
+ 
