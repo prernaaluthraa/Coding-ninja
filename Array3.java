@@ -1,22 +1,47 @@
-obj.driver.execute_script("window.scrollBy(-3000,0)")
-    try:
-        dropdown_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div/div[2]/main/div/div/div[1]/div/div/div[2]/div/div/div/div[18]/div/a')))
-        dropdown_button.click()
-        print("PLS Investor settings clicked")
+class obj:
+def process(obj):   
 
-Process error ('error', 'Message: unknown error: Element is not clickable at point (62, 957)\n  (Session info: headless chrome=110.0.5481.177)\n  (Driver info: chromedriver=2.40.565383 (76257d1ab79276b2d53ee976b2c3e3b9f335cde7),platform=Linux 3.10.0-1160.95.1.el7.x86_64 x86_64)\n')
+    element_exists(obj.driver, "/html/body/div/div/div[2]/main/div/div/div[2]/div/div/div[2]/div/div[2]/div/div/div[1]/div[2]/div[3]/div[1]/div/div[2]/div/div/div/div[6]/div/span/button", obj, exists_action=on_edit_exists, Non_exists_action=on_edit_not_exists)
+    
+    
+    def element_exists(driver, selector, obj, exists_action=None, Non_exists_action=None):
+        
+        elements = driver.find_elements(By.XPATH, '/html/body/div/div/div[2]/main/div/div/div[2]/div/div/div[2]/div/div[2]/div/div/div[1]/div[2]/div[3]/div[1]/div/div[2]/div/div/div/div[6]/div/span/button')
+        if elements:
+            element = elements[0]   
+            if exists_action:
+                exists_action(element)
+            return True
+        else:
+            if Non_exists_action:
+                Non_exists_action()
+            return False    
+    
+    def on_edit_exists(obj,element):
+        element.click()
+        print("edit clicked")
+        toggle.validatequest(obj)
+        vdfield.validateQuestField(obj)
+        vdfieldlast.validateQuestFieldLast(obj)
+    
+        obj.printlog.info("Edit exists and clicked")
+    
+    def on_edit_not_exists(obj):
+        print("edit doesn't exist")
+        obj.printlog.info("New Record as edit doesn't exist")
+        driver.find_element(By.XPATH, '/html/body/div/div/div[2]/main/div/div/div[2]/div/div/div[2]/div/div[1]/button').click()
+        print("new record clicked")
+        obj.printlog.info("Clicked on new record")
+      
+error:
 Traceback (most recent call last):
-  File "/application/RPA/LRPU/PLSInvestorRulesAutomation/SRC/Framework/PLSInvestorNewRecord.py", line 122, in searchInvestor
-    dropdown_button.click()
-  File "/home/svc_dl_dev_exec/.local/lib/python3.9/site-packages/selenium/webdriver/remote/webelement.py", line 80, in click
-    self._execute(Command.CLICK_ELEMENT)
-  File "/home/svc_dl_dev_exec/.local/lib/python3.9/site-packages/selenium/webdriver/remote/webelement.py", line 633, in _execute
-    return self._parent.execute(command, params)
-  File "/home/svc_dl_dev_exec/.local/lib/python3.9/site-packages/selenium/webdriver/remote/webdriver.py", line 321, in execute
-    self.error_handler.check_response(response)
-  File "/home/svc_dl_dev_exec/.local/lib/python3.9/site-packages/selenium/webdriver/remote/errorhandler.py", line 242, in check_response
-    raise exception_class(message, screen, stacktrace)
-selenium.common.exceptions.WebDriverException: Message: unknown error: Element is not clickable at point (62, 957)
-  (Session info: headless chrome=110.0.5481.177)
-  (Driver info: chromedriver=2.40.565383 (76257d1ab79276b2d53ee976b2c3e3b9f335cde7),platform=Linux 3.10.0-1160.95.1.el7.x86_64 x86_64)
+  File "/application/RPA/LRPU/PLSInvestorRulesAutomation/SRC/Finalmain.py", line 340, in main
+    pr.inflightPrcs(obj)
+  File "/application/RPA/LRPU/PLSInvestorRulesAutomation/SRC/Framework/process.py", line 33, in inflightPrcs
+    element_exists(obj.driver, "/html/body/div/div/div[2]/main/div/div/div[2]/div/div/div[2]/div/div[2]/div/div/div[1]/div[2]/div[3]/div[1]/div/div[2]/div/div/div/div[6]/div/span/button", obj, exists_action=on_edit_exists, Non_exists_action=on_edit_not_exists)
+  File "/application/RPA/LRPU/PLSInvestorRulesAutomation/SRC/Framework/process.py", line 323, in element_exists
+    exists_action(element)
+TypeError: on_edit_exists() missing 1 required positional argument: 'element'
+Restarting session
+'NoneType' object has no attribute 'terminate'
 
