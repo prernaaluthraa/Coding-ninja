@@ -146,3 +146,70 @@
         except Exception as ex:
             obj.SystemException = "Cleanup Script failed. Please look into it."
             raise Exception(f"error:", str(ex))
+
+
+
+    def sendOutlookMail(obj):
+        port = int(obj.config['ExchangePort'])
+        SERVER = obj.config['ExchangeServer']
+        msg=MIMEMultipart('alternative')
+        asset=obj.get_password(obj.config['asset_email'])
+        frm=asset[0]
+        disclamerfile=open(obj.config['COMMON_REQUIRED']+"Disclaimer.htm",'r')
+        disclamer=disclamerfile.read()
+        disclamerfile.close()
+        to=obj.config['ExchEmailTo'].split(";")
+        cc=obj.config['ExchEmailCc'].split(";")
+        msg['From']=frm
+        msg['To']=','.join(to)
+        msg['Cc']=','.join(cc)
+        to+=cc
+        BODY=''
+        if obj.SystemException:
+            msg['Subject']=obj.config['PROCESSNAME']+"  FAILED"
+            BODY+=obj.SystemException
+        else:
+            msg['Subject']=obj.config['PROCESSNAME'] + "  SUCCESS"
+
+            total_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+            free_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
+            total_before_str = f"{total_before / (1024 ** 3):.2f} GB"
+            free_before_str = f"{free_before / (1024 ** 3):.2f} GB"
+            used_before_str = f"{(total_before - free_before) / (1024 ** 3):.2f} GB"
+
+            BODY+=obj.config['ExchEmailBodySuccess']
+            
+            # Calculate disk storage details after script execution
+            total_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+            free_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
+            total_after_str = f"{total_after / (1024 ** 3):.2f} GB"
+            used_after_str = f"{(total_after - free_after) / (1024 ** 3):.2f} GB"
+            free_after_str = f"{free_after / (1024 ** 3):.2f} GB"
+
+            BODY+= "<br>Disk Storage Before Script Execution: <br>"
+            BODY+= f"Total: {total_before_str} <br>"
+            BODY+= f"Used: {used_before_str}<br>"
+            BODY+= f"Free: {free_before_str}<br>"
+            # Add disk storage details to the body
+
+            BODY+= "<br>Disk Storage After Script Execution: <br>"
+            BODY+= f"Total: {total_after_str}<br>"
+            BODY+= f"Used: {used_after_str}<br>"
+            BODY+= f"Free: {free_after_str}<br><br>"
+
+            output_file_path = "/application/RPA/COMMON/CleanupFiles/LOGS/output_" + time.strftime("%Y%m%d-%H%M%S") + ".csv"
+            BODY += "Output File Path: " + output_file_path
+
+            # Add disk storage details before script execution
+
+
+        BODY+=disclamer
+        msg.attach(MIMEText(BODY,'plain'))
+        msg.attach(MIMEText(BODY,'html'))
+        context = ssl.create_default_context()
+        server=smtplib.SMTP(SERVER,port)
+        server.starttls(context=context)
+        #server.login(frm,asset[1])
+        server.sendmail(frm,to,msg.as_string())
+        server.quit()
+
