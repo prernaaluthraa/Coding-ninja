@@ -1,42 +1,148 @@
-def SaveRecord(obj):
-    driver = obj.driver
-    try:
-        save_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div/div[2]/main/div/div/div[2]/div/div/div[3]/form/div[2]/div[5]/button')))
-        
-        # If the save button is active, proceed to click on it
-        driver.execute_script("arguments[0].click();", save_button)
-        print("Save clicked")
 
-        # Saving changes window
+    def cleanup(obj):
         try:
-            updatereason = "Investor Data Updated by BOT"
-            reason = driver.find_element(By.XPATH, '/html/body/div[3]/div/div/form/div[2]/div/div/div/div[1]/div/textarea')
-            reason.send_keys(updatereason)
-            print("Reason updated")
-            save_check = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[3]/div/div/form/div[3]/div/div[2]/button')))
-            save_check.click()
-            print("Save changes clicked")
-            driver.save_screenshot(obj.config['SS'] + "save_changes.png")
 
-        except (TimeoutException, StaleElementReferenceException) as e:
-            traceback.print_exc()
-            print(f"Error during save changes: {e}")
-            obj.printlog.info(f"Error during save changes: {e}")
-        
-    except TimeoutException:
-        # If the save button is not active, click on the cancel button
-        print("Save button not active. Clicking on cancel button.")
-        try:
-            cancel_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div/div[2]/main/div/div/div[2]/div/div/div[3]/form/div[2]/div[3]/button')))
-            driver.execute_script("arguments[0].scrollIntoView(false);", cancel_button)
-            driver.execute_script("arguments[0].click();", cancel_button)
-            print("Cancel button clicked")
-            time.sleep(2)
-            driver.save_screenshot(obj.config['SS'] + "cancel_button.png")
-            time.sleep(2)
-        except (TimeoutException, StaleElementReferenceException) as e:
-            traceback.print_exc()
-            print(f"Error during cancel: {e}")
-            obj.printlog.info(f"Error during cancel: {e}")
+            rpa_path = "/application/RPA"
+            folders_to_check = ["LOGS", "SCREENSHOTS", "ARCHIVE", "OUT", "TEMP"]
+            time_period = time.time() - (180 * 24 * 60 * 60)
+            seven_days_ago = time.time() - (7 * 60 * 60 * 60)
+            log_count = 0
+            screenshot_count = 0
+            others_count = 0
+            size = 0
+
+            output_filename = "/application/RPA/COMMON/CleanupFiles/LOGS/output_" + time.strftime("%Y%m%d-%H%M%S") + ".csv"
+            with open(output_filename, 'w', newline='') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                csvwriter.writerow(["Action", "File Path", "Modification Date"])
+
+                # Get disk storage before running the script
+                total_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+                free_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
+
+                # Convert sizes to human-readable format
+                total_before_str = f"{total_before / (1024 ** 3):.2f} GB"
+                free_before_str = f"{free_before / (1024 ** 3):.2f} GB"
+
+                # Print disk storage information before running the script
+                csvwriter.writerow(["Disk Storage Before Script Execution"])
+                csvwriter.writerow(["Total", total_before_str])
+                csvwriter.writerow(["Free", free_before_str])
+                csvwriter.writerow([])  # Empty row for separation
+
+                temp_folder_name = "OldLogDump_" + time.strftime("%d%m%Y-%H%M%S")
+                temp_folder_path = os.path.join("/application/LogDumps/", temp_folder_name)
+                os.makedirs(temp_folder_path)
+
+                # Check files in the "deleted_files" folder
+                for folder in os.listdir(temp_folder_path):
+                    folder_path = os.path.join(temp_folder_path, folder)
+                    if os.path.isdir(folder_path) and os.path.getmtime(folder_path) < seven_days_ago:
+                        # Delete files in the folder
+                        for file in os.listdir(folder_path):
+                            file_path = os.path.join(folder_path, file)
+                            if os.path.isfile(file_path):
+                                csvwriter.writerow(["Deleting file", file_path, ""])
+                                #os.remove(file_path)
+                        ###Delete the folder
+                        #shutil.rmtree(folder_path)
+
+                ###move files
+                for root, dirs, files in os.walk(rpa_path):
+                    for folder_name in folders_to_check:
+                        if folder_name in dirs:
+                            folder_path = os.path.join(root, folder_name)
+                            csvwriter.writerow(["Checking", folder_path, ""])
+
+                            if folder_name == "LOGS":
+                                runlogs_path = os.path.join(folder_path, "RUNLOGS")
+                                if os.path.exists(runlogs_path):
+                                    for filename in os.listdir(runlogs_path):
+                                        file_path = os.path.join(runlogs_path, filename)
+                                        if os.path.isfile(file_path) and os.path.getmtime(file_path) < time_period:
+                                            mod_time = os.path.getmtime(file_path)
+                                            mod_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mod_time))
+                                            log_count += 1
+                                            # Generate a unique identifier for the destination filename
+                                            unique_filename = str(uuid.uuid4()) + "_" + filename
+                                            move_path = os.path.join(temp_folder_path, unique_filename)
+                                            csvwriter.writerow(["File path", file_path, mod_date])
+                                            # Check if the destination file already exists
+                                            while os.path.exists(move_path):
+                                                # Append a unique identifier to the filename
+                                                unique_filename = str(uuid.uuid4()) + "_" + filename
+                                                move_path = os.path.join(temp_folder_path, unique_filename)
+                                            #Move the file to the temporary folder with the unique filename
+                                            shutil.move(file_path, move_path)
+                                else:
+                                    pass 
+
+                            elif folder_name == "SCREENSHOTS":
+                                print(folder_path)
+                                for root, dirs, files in os.walk(folder_path, topdown=True):
+                                    for file in files:
+                                        file_path = os.path.abspath(os.path.join(root, file))
+                                        
+                                        if os.path.isfile(file_path) and os.path.getmtime(file_path) < time_period:
+                                            mod_time = os.path.getmtime(file_path)
+                                            mod_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mod_time))
+                                            csvwriter.writerow(["File path", file_path, mod_date])
+                                            print(file)
+                                            screenshot_count += 1
+                                            # Generate a unique identifier for the destination filename
+                                            unique_filename = str(uuid.uuid4()) + "_" + filename
+                                            move_path = os.path.join(temp_folder_path, unique_filename)
+                                            csvwriter.writerow(["File path", file_path, mod_date])
+                                            # Check if the destination file already exists
+                                            while os.path.exists(move_path):
+                                                # Append a unique identifier to the filename
+                                                unique_filename = str(uuid.uuid4()) + "_" + filename
+                                                move_path = os.path.join(temp_folder_path, unique_filename)
+                                            # Move the file to the temporary folder with the unique filename
+                                            shutil.move(file_path, move_path)
+                                        else:
+                                            pass
+                            else:
+                                for filename in os.listdir(folder_path):
+                                    file_path = os.path.join(folder_path, filename)
+                                    if os.path.isfile(file_path) and os.path.getmtime(file_path) < time_period:
+                                        mod_time = os.path.getmtime(file_path)
+                                        mod_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mod_time))
+                                        csvwriter.writerow(["File path", file_path, mod_date])
+                                        others_count += 1
+                                        # Generate a unique identifier for the destination filename
+                                        unique_filename = str(uuid.uuid4()) + "_" + filename
+                                        move_path = os.path.join(temp_folder_path, unique_filename)
+                                        csvwriter.writerow(["File path", file_path, mod_date])
+                                        # Check if the destination file already exists
+                                        while os.path.exists(move_path):
+                                            # Append a unique identifier to the filename
+                                            unique_filename = str(uuid.uuid4()) + "_" + filename
+                                            move_path = os.path.join(temp_folder_path, unique_filename)
+                                        # Move the file to the temporary folder with the unique filename
+                                        shutil.move(file_path, move_path)
+                                    else:
+                                        pass
+                # Get disk storage after running the script
+                total_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+                free_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
+
+                # Calculate used space
+                used_before = total_before - free_before
+                used_after = total_after - free_after
+
+                # Convert sizes to human-readable format
+                total_after_str = f"{total_after / (1024 ** 3):.2f} GB"
+                used_after_str = f"{used_after / (1024 ** 3):.2f} GB"
+                free_after_str = f"{free_after / (1024 ** 3):.2f} GB"
+
+                # Print disk storage information after running the script
+                csvwriter.writerow([])  # Empty row for separation
+                csvwriter.writerow(["Disk Storage After Script Execution"])
+                csvwriter.writerow(["Total", total_after_str])
+                csvwriter.writerow(["Used", used_after_str])
+                csvwriter.writerow(["Free", free_after_str])
+
         except Exception as ex:
-            raise Exception("Error during cancel:", str(ex))
+            obj.SystemException = "Cleanup Script failed. Please look into it."
+            raise Exception(f"error:", str(ex))
