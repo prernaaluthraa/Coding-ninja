@@ -237,3 +237,44 @@ if __name__=="__main__":
     display.start()
     main()
     display.stop()
+
+
+import os
+import csv
+import time
+import uuid
+import shutil
+import smtplib
+import ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+
+# ... (the rest of your code)
+
+def sendOutlookMail(obj):
+    # ... (existing code)
+
+    # Define the path to the output CSV file
+    output_csv_filename = "output_" + time.strftime("%Y%m%d-%H%M%S") + ".csv"
+    output_csv_path = "/application/RPA/COMMON/CleanupFiles/LOGS/" + output_csv_filename
+
+    # Check if the CSV file exists before zipping it
+    if os.path.exists(output_csv_path):
+        # Define the desired ZIP filename format
+        zip_filename = output_csv_filename.replace(".csv", ".zip")
+        zip_path = os.path.join(os.path.dirname(output_csv_path), zip_filename)
+
+        # Zip the CSV file
+        shutil.make_archive(zip_path, 'zip', os.path.dirname(output_csv_path), output_csv_filename)
+
+        # Attach the ZIP file to the email
+        attachment = open(zip_path, "rb")
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload((attachment).read())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', "attachment; filename= %s" % os.path.basename(zip_path))
+        msg.attach(part)
+    else:
+        print(f"CSV file '{output_csv_path}' not found.")
