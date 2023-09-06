@@ -143,12 +143,17 @@
                 csvwriter.writerow(["Used", used_after_str])
                 csvwriter.writerow(["Free", free_after_str])
 
+                zip_filename = f"OldLogDump_{time.strftime('%d%m%Y - %H%M%S')}.zip"
+                zip_path = os.path.join("/application/LogDumps/", zip_filename)
+
+                #Zip the temporary folder
+                shutil.make_archive(temp_folder_path, 'zip', "/application/LogDumps/", temp_folder_name)
+
         except Exception as ex:
             obj.SystemException = "Cleanup Script failed. Please look into it."
             raise Exception(f"error:", str(ex))
-
-
-
+        
+    #email part
     def sendOutlookMail(obj):
         port = int(obj.config['ExchangePort'])
         SERVER = obj.config['ExchangeServer']
@@ -199,7 +204,8 @@
 
             output_file_path = "/application/RPA/COMMON/CleanupFiles/LOGS/output_" + time.strftime("%Y%m%d-%H%M%S") + ".csv"
             BODY += "Output File Path: " + output_file_path
-
+            time_period = 180
+            BODY += "<Br>Time Period: {} days".format(time_period)
             # Add disk storage details before script execution
 
 
@@ -213,3 +219,21 @@
         server.sendmail(frm,to,msg.as_string())
         server.quit()
 
+def main():
+    print("Process Started Successfully!")
+    obj=Obj("/application/RPA/COMMON/CleanupFiles/Config.csv")
+
+    
+    try:
+        #call functions here
+        obj.cleanup()
+        obj.sendOutlookMail()
+    finally:
+
+        print("Execution Completed Successfully!")
+
+if __name__=="__main__":
+    display=Display(visible=0,size=(1366,768))
+    display.start()
+    main()
+    display.stop()
