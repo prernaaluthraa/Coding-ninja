@@ -48,11 +48,7 @@ class Obj:
                 csvwriter.writerow(["Free", free_before_str])
                 csvwriter.writerow([])  # Empty row for separation
 
-                temp_folder_name = "OldLogDump_" + time.strftime("%d%m%Y-%H%M%S")
-                temp_folder_path = os.path.join("/application/LogDumps/", temp_folder_name)
-                os.makedirs(temp_folder_path)
-
-                # Check if there's a zip folder older than 7 days and delete it
+                # Check and delete zip folders older than 7 days
                 for root, dirs, files in os.walk("/application/LogDumps/"):
                     for folder_name in dirs:
                         folder_path = os.path.join(root, folder_name)
@@ -61,6 +57,10 @@ class Obj:
                             if folder_mtime < seven_days_ago:
                                 csvwriter.writerow(["Deleting zip folder", folder_path, ""])
                                 shutil.rmtree(folder_path)
+
+                temp_folder_name = "OldLogDump_" + time.strftime("%d%m%Y-%H%M%S")
+                temp_folder_path = os.path.join("/application/LogDumps/", temp_folder_name)
+                os.makedirs(temp_folder_path)
 
                 for folder in os.listdir(temp_folder_path):
                     folder_path = os.path.join(temp_folder_path, folder)
@@ -85,11 +85,11 @@ class Obj:
                                 with zipfile.ZipFile(folder_path, 'r') as zip_ref:
                                     zip_ref.extractall(temp_folder_path)
 
-                                # After extracting, check if the folder is empty again
-                                if not os.listdir(folder_path):
-                                    # Delete the folder if it's empty
-                                    csvwriter.writerow(["Deleting folder", folder_path, ""])
-                                    os.rmdir(folder_path)
+                            # After extracting, check if the folder is empty again
+                            if not os.listdir(folder_path):
+                                # Delete the folder if it's empty
+                                csvwriter.writerow(["Deleting folder", folder_path, ""])
+                                os.rmdir(folder_path)
                         else:
                             print("folder not older than 7 days")
                             csvwriter.writerow(["folder not older than 7 days", folder_path, ""])
