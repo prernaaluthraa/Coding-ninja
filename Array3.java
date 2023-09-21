@@ -1,304 +1,207 @@
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, NoSuchFrameException
-
-import time
-
-import json
 import os
-from datetime import datetime
+import time
+import csv
+import pandas as pd
+import smtplib,ssl
+import getpass
+import sys
+import cx_Oracle
+import traceback
+import base64
+import shutil
+import uuid
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from pyvirtualdisplay import Display
+from email.mime.base import MIMEBase
+from email import encoders
 
-            
-def Login(obj):
-    driver=obj.driver
-    count=2
-    MAX_COUNT=int(str(obj.config['MaxRetryNumber']))
-    # companyCode=str(obj.config['companyCode']).strip() 
-   
-    BKFS_Creds=obj.get_password(obj.config['asset_bkfs'])
-  
+
+class Obj:
+    # def __init__(self,CofigPath):
+        
+    #     self.config=None
+    #     self.CofigPath=CofigPath
+    #     self.SystemException=None
+    def __init__(self, ConfigPath):
+        self.config = self.load_config(ConfigPath)
+        self.SystemException = None
+        #self.asset_connection=None
+        self.connection=None
+        self.asset_connection=self.dbConnect('RPA_RO','Rpa#357dtro','ononpexd-scan.corp.ocwen.com','1521','odclrep_atl')
 
 
-    loanSphereURL=str(obj.config['BKFS_SEARCHURL']).strip()    
-    logSuccess=False
-    invalidCreds=False
-    credsExpired=False
-    obj.printlog.info("Entering into BKFS Portal")
-    while(count<= MAX_COUNT):
+    def load_config(self, ConfigPath):
+        df = pd.read_csv(ConfigPath)
+        config = {}
+        for _, row in df.iterrows():
+            config[row['NAME']] = row['VALUE']
+        return config
 
-        driver=obj.driver
+    def dbConnect(self,user,pwd,host,port,service):
         try:
-            driver.close()
-        except:
-            pass
-        finally:
-            obj.getDriver(obj)
-            driver=obj.driver
-
-        try:
-            
-            obj.printlog.info("Load URL "+ obj.config["BKFS_SEARCHURL"])
-            driver.get(obj.config["BKFS_SEARCHURL"])
-            time.sleep(5)
-            if  check_exists_by_xpath(driver,"//*[@id='companyLogo']")==True:
-                
-                obj.printlog.info("Landed on login page")
-             
-                obj.printlog.info("Enter Username "+ BKFS_Creds[0])
-              
-                driver.find_element_by_xpath('//*[@id="userNameInput"]').send_keys(BKFS_Creds[0])
-                obj.printlog.info("Enter BKFS Password")
-                obj.driver.save_screenshot(obj.config['SS']+"Login page.png")
-                
-                driver.find_element_by_xpath('//*[@id="passwordInput"]').send_keys((BKFS_Creds[1])+Keys.RETURN)
-                time.sleep(5)
-                obj.driver.save_screenshot(obj.config['SS']+"BKFS Logged_in.png")
-
-                if  check_exists_by_xpath(driver,"//*[@id='lblPageTitle']")==True:
-                
-                    obj.printlog.info("Entered  inside BKFS Portal")
-              
-                    time.sleep(6)
-                   
-                    obj.printlog.info("clicking on loss mitigation button")
-                  
-                    driver.find_element_by_xpath(r'//*[@id="lblPageTitle"]').click()
-                    time.sleep(5)
-
-
-                    driver.find_element_by_link_text("Loss Mitigation").click()
-                    time.sleep(8)
-                            
-                  
-                    
-                    
-                    obj.printlog.info("Successfully landed on loan search page")
-                    #PLS investor
-                    # for PLS Investor settings
-                    driver.switch_to.frame('ifr_LMT')
-                    time.sleep(5)
-                    print("entered loss mitigation")
-                    obj.printlog.info("entered loss mitigation")
-                    dropdown_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div/div[2]/header/div/div/div[1]/div/div[1]/div/button')))
-                    time.sleep(5)
-                    dropdown_button.click()
-                    print("dropdown button clicked")
-                    obj.printlog.info("dropdown button clicked")
-                    obj.driver.save_screenshot(obj.config['SS']+"tabdropdown.png")
-                    time.sleep(5)
-
-                    dropdown_options = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div/div[2]/header/div/div/div[1]/div/div[1]/div/div/a[2]')))
-                    dropdown_options.click()
-                    print("Admin tab entered")
-                    obj.printlog.info("Admin tab entered")
-                    obj.driver.save_screenshot(obj.config['SS']+"Admin Tab.png")
-
-                    time.sleep(5)
-                    obj.driver.save_screenshot(obj.config['SS']+"Admin page.png")
-
-                    obj.driver.save_screenshot(obj.config['SS']+"PLS Investor visible.png")
-                    time.sleep(5)
-                    try:
-                        pls_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div/div[2]/main/div/div/div[1]/div/div/div[2]/div/div/div/div[19]/div/a')))
-
-                        # obj.driver.execute_script("window.scrollBy(0, 2000)")
-                        driver.execute_script("arguments[0].click();",pls_button)
-                        obj.driver.save_screenshot(obj.config['SS']+"PLS Investor.png")
-                        time.sleep(5)
-
-                        print("PLS Investor settings clicked")
-                        # time.sleep(5)
-
-                        obj.driver.save_screenshot(obj.config['SS']+"PLS Investor page.png")
-                        time.sleep(2)
-                        obj.driver.save_screenshot(obj.config['SS']+"PLS Investor page check.png")
-
-                        # investor_id = str(obj.TransactionItem[1])
-                        # print("investor ID", investor_id)
-                        column_header = driver.find_element(By.XPATH, '/html/body/div/div/div[2]/main/div/div/div[2]/div/div/div[2]/div/div[2]/div/div/div[1]/div[2]/div[1]/div[2]/div/div/div[1]/div[3]/div')
-                        print("column header found")
-                        # driver.execute_script("arguments[0].scrollIntoView(false);",column_header)
-                        driver.execute_script("arguments[0].click();",column_header)
-                        obj.driver.save_screenshot(obj.config['SS']+str(obj.INVESTOR_IDNumber)+"Investor ID column.png")
-                        print("column header clicked")
-                        time.sleep(1)
-                    except (TimeoutException, StaleElementReferenceException) as e:
-                        traceback.print_exc()          
-                        print(f"error:{e}")
-                    except Exception as ex:            
-                        raise Exception(f"error", str(ex))
-
-
-                elif check_exists_by_xpath(driver,'//*[@id="lblWarning"]')==True:
-                    driver.find_element_by_xpath(r'//*[@id="btnClearSessn"]').click()
-                    print("BKFS Portal session expired")
-                    raise Exception("Session Expired Try login again")
-
-                elif obj.config['BKFS_security_message'] in obj.driver.page_source:
-                    obj.driver.save_screenshot(obj.config['SS']+"SecurityQue_1.png")
-
-                    question=WebDriverWait(obj.driver,30).until(EC.presence_of_element_located((By.XPATH,'//*[@id="loginForm"]/label'))).text.strip()
-                    securityQuesAns_dict=json.loads(obj.config['BKFS_security_QuesAns_dict'].replace(";", ","))
-                    answer=next((securityQuesAns_dict[key] for key in securityQuesAns_dict if key in question),'')
-                    obj.printlog.info('Question : {} | Answer : {}'.format(str(question),answer))
-                    if answer=='':
-                        raise Exception("BRE: BKFS Portal - Invalid security question being asked! (for '{}')".format(obj.bkfsUserName))
-                    else:
-                        answer_field=obj.driver.find_element(By.XPATH,'/html/body/div[2]/div[2]/div/main/div/div/div[3]/div/form/input[4]')
-                        answer_field.send_keys(answer+Keys.RETURN)
-                        obj.driver.save_screenshot(obj.config['SS']+"SecurityQue_2.png")
-
-                        time.sleep(2)
-
-                time.sleep(6)
-
-                    
-
-                if check_exists_by_xpath(driver,'//*[@id="lblWarning"]')==True:
-                    driver.find_element_by_xpath(r'//*[@id="btnClearSessn"]').click()
-                    print("BKFS Portal session expired")
-                
-                obj.printlog.info("clicking on loss mitigation button")
-                
-                driver.find_element_by_xpath(r'//*[@id="lblPageTitle"]').click()
-                time.sleep(5)
-
-
-                driver.find_element_by_link_text("Loss Mitigation").click()
-                time.sleep(8)   
-                obj.driver.save_screenshot(obj.config['SS']+"LossMitScreen.png")
-
-                #PLS investor
-                # for PLS Investor settings
-                driver.switch_to.frame('ifr_LMT')
-                time.sleep(5)
-                print("entered loss mitigation")
-                obj.printlog.info("entered loss mitigation")
-                dropdown_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div/div[2]/header/div/div/div[1]/div/div[1]/div/button')))
-                time.sleep(2)
-                dropdown_button.click()
-                print("dropdown button clicked")
-                obj.printlog.info("dropdown button clicked")
-                obj.driver.save_screenshot(obj.config['SS']+"tabdropdown.png")
-                dropdown_options = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div/div[2]/header/div/div/div[1]/div/div[1]/div/div/a[2]')))
-                dropdown_options.click()
-                print("Admin tab entered")
-                obj.printlog.info("Admin tab entered")
-                obj.driver.save_screenshot(obj.config['SS']+"Admin Tab.png")
-
-                time.sleep(5)
-                obj.driver.save_screenshot(obj.config['SS']+"Admin page.png")
-
-                obj.driver.save_screenshot(obj.config['SS']+"PLS Investor visible.png")
-                try:
-                    pls_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div/div[2]/main/div/div/div[1]/div/div/div[2]/div/div/div/div[19]/div/a')))
-
-                    # obj.driver.execute_script("window.scrollBy(0, 2000)")
-                    driver.execute_script("arguments[0].click();",pls_button)
-                    obj.driver.save_screenshot(obj.config['SS']+"PLS Investor.png")
-                    time.sleep(5)
-                    print("PLS Investor settings clicked")
-                    # time.sleep(5)
-                    obj.driver.save_screenshot(obj.config['SS']+"PLS Investor page.png")
-                    time.sleep(2)
-                    obj.driver.save_screenshot(obj.config['SS']+"PLS Investor page confirm.png")
-                    # investor_id = str(obj.TransactionItem[1])
-                    # print("investor ID", investor_id)
-                    column_header = driver.find_element(By.XPATH, '/html/body/div/div/div[2]/main/div/div/div[2]/div/div/div[2]/div/div[2]/div/div/div[1]/div[2]/div[1]/div[2]/div/div/div[1]/div[3]/div')
-                    print("column header found")
-                    # driver.execute_script("arguments[0].scrollIntoView(false);",column_header)
-                    driver.execute_script("arguments[0].click();",column_header)
-                    obj.driver.save_screenshot(obj.config['SS']+str(obj.INVESTOR_IDNumber)+"Investor ID column.png")
-                    print("column header clicked")
-                    time.sleep(1)
-                except (TimeoutException, StaleElementReferenceException) as e:
-                    traceback.print_exc()          
-                    print(f"error:{e}")
-                except Exception as ex:            
-                    raise Exception(f"error", str(ex))
-
-                if check_exists_by_xpath(driver,'//*[@id="errorText"]')==True:
-                    obj.printlog.info("Error while loging to LPS  as credentials are invalid for the user "+BKFS_Creds[0])
-                    # global invalidCreds
-                    invalidCreds=True
-                    raise Exception("Error while loging to LPS  as credentials are invalid for the user "+BKFS_Creds[0])
-                elif True:
-                    try:
-                        driver.switch_to.frame("iframeDialog")
-                        credsExpired=True
-                        raise Exception("Error while loging in to LPS as credentials have expired for the user "+BKFS_Creds[0])
-                    except NoSuchFrameException:
-                        obj.printlog.info("Password hasn't expired")
-
-                    
-
-                else:
-                    obj.printlog.info("Logged in")
-                    pass
-                    
-                    
-
-                time.sleep(5)
-                return driver
-              
-
-                
-            else:
-                #print("did not login")
-                obj.printlog.info("Didn't land on login page")
-                raise Exception("Didn't land on login page")   
-
-
+            connectionString=user+'/'+pwd+'@'+host+':'+str(port)+'/'+service
+            connection=cx_Oracle.connect(connectionString)
+            print("Connected to the DB!")
+            return connection
         except Exception as ex:
-            obj.printlog.info("Error while landing to Login page "+ str(ex))
-            count+=1
-            
-            if ( invalidCreds==True or credsExpired==True):
-                raise
-            elif count>MAX_COUNT :
-                raise Exception(f"Login to LPS failed for the user {BKFS_Creds[0]} after trying for {MAX_COUNT} times")
+            raise Exception("Error Connecting DataBase with Exception :",str(ex))    
 
 
-            else:
-                pass
-        finally:
-            obj.printlog.info("In finally for bkfs login")
-    return None
 
-def check_exists_by_id(driver,Id):
-    try:
-        driver.find_element(By.ID,Id)
-        return True
-    except NoSuchElementException:
-        return False
+    def cleanup(obj):
+        try:
 
-def check_exists_by_xpath(driver,Xpath):
-    try:
-        driver.find_element_by_xpath(Xpath)
-        return True
-    except NoSuchElementException:
-        return False                      
+            rpa_path = "/application/RPA"
+            folders_to_check = ["LOGS", "SCREENSHOTS", "ARCHIVE", "OUT", "TEMP"]
+            time_period = time.time() - (float(obj.config['days']) * 24 * 60 * 60)
+            seven_days_ago = time.time() - (7 * 60 * 60 * 60)
+            log_count = 0
+            screenshot_count = 0
+            others_count = 0
+            size = 0
+
+            output_filename = "/application/RPA/COMMON/CleanupFiles/LOGS/output_" + time.strftime("%Y%m%d-%H%M%S") + ".csv"
+            with open(output_filename, 'w', newline='') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                csvwriter.writerow(["Action", "File Path", "Modification Date"])
+
+                # Get disk storage before running the script
+                total_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+                free_before = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
+
+                # Convert sizes to human-readable format
+                total_before_str = f"{total_before / (1024 ** 3):.2f} GB"
+                free_before_str = f"{free_before / (1024 ** 3):.2f} GB"
+
+                # Print disk storage information before running the script
+                csvwriter.writerow(["Disk Storage Before Script Execution"])
+                csvwriter.writerow(["Total", total_before_str])
+                csvwriter.writerow(["Free", free_before_str])
+                csvwriter.writerow([])  # Empty row for separation
+
+                temp_folder_name = "OldLogDump_" + time.strftime("%d%m%Y-%H%M%S")
+                temp_folder_path = os.path.join("/application/LogDumps/", temp_folder_name)
+                os.makedirs(temp_folder_path)
+
+                # Check files in the "deleted_files" folder
+                for folder in os.listdir(temp_folder_path):
+                    folder_path = os.path.join(temp_folder_path, folder)
+                    if os.path.isdir(folder_path) and os.path.getmtime(folder_path) < seven_days_ago:
+                        # Delete files in the folder
+                        for file in os.listdir(folder_path):
+                            file_path = os.path.join(folder_path, file)
+                            if os.path.isfile(file_path):
+                                csvwriter.writerow(["Deleting file", file_path, ""])
+                                os.remove(file_path)
+                        ###Delete the folder
+                        shutil.rmtree(folder_path)
+
+                ###move files
+                for root, dirs, files in os.walk(rpa_path):
+                    for folder_name in folders_to_check:
+                        if folder_name in dirs:
+                            folder_path = os.path.join(root, folder_name)
+                            csvwriter.writerow(["Checking", folder_path, ""])
+
+                            if folder_name == "LOGS":
+                                runlogs_path = os.path.join(folder_path, "RUNLOGS")
+                                if os.path.exists(runlogs_path):
+                                    for filename in os.listdir(runlogs_path):
+                                        file_path = os.path.join(runlogs_path, filename)
+                                        if os.path.isfile(file_path) and os.path.getmtime(file_path) < time_period:
+                                            mod_time = os.path.getmtime(file_path)
+                                            mod_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mod_time))
+                                            log_count += 1
+                                            # Generate a unique identifier for the destination filename
+                                            unique_filename = str(uuid.uuid4()) + "_" + filename
+                                            move_path = os.path.join(temp_folder_path, unique_filename)
+                                            csvwriter.writerow(["File path", file_path, mod_date])
+                                            # Check if the destination file already exists
+                                            while os.path.exists(move_path):
+                                                # Append a unique identifier to the filename
+                                                unique_filename = str(uuid.uuid4()) + "_" + filename
+                                                move_path = os.path.join(temp_folder_path, unique_filename)
+                                            #Move the file to the temporary folder with the unique filename
+                                            shutil.move(file_path, move_path)
+                                else:
+                                    pass 
+
+                            elif folder_name == "SCREENSHOTS":
+                                print(folder_path)
+                                for root, dirs, files in os.walk(folder_path, topdown=True):
+                                    for file in files:
+                                        file_path = os.path.abspath(os.path.join(root, file))
+                                        
+                                        if os.path.isfile(file_path) and os.path.getmtime(file_path) < time_period:
+                                            mod_time = os.path.getmtime(file_path)
+                                            mod_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mod_time))
+                                            csvwriter.writerow(["File path", file_path, mod_date])
+                                            print(file)
+                                            screenshot_count += 1
+                                            # Generate a unique identifier for the destination filename
+                                            unique_filename = str(uuid.uuid4()) + "_" + filename
+                                            move_path = os.path.join(temp_folder_path, unique_filename)
+                                            csvwriter.writerow(["File path", file_path, mod_date])
+                                            # Check if the destination file already exists
+                                            while os.path.exists(move_path):
+                                                # Append a unique identifier to the filename
+                                                unique_filename = str(uuid.uuid4()) + "_" + filename
+                                                move_path = os.path.join(temp_folder_path, unique_filename)
+                                            # Move the file to the temporary folder with the unique filename
+                                            shutil.move(file_path, move_path)
+                                        else:
+                                            pass
+                            else:
+                                for filename in os.listdir(folder_path):
+                                    file_path = os.path.join(folder_path, filename)
+                                    if os.path.isfile(file_path) and os.path.getmtime(file_path) < time_period:
+                                        mod_time = os.path.getmtime(file_path)
+                                        mod_date = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mod_time))
+                                        csvwriter.writerow(["File path", file_path, mod_date])
+                                        others_count += 1
+                                        # Generate a unique identifier for the destination filename
+                                        unique_filename = str(uuid.uuid4()) + "_" + filename
+                                        move_path = os.path.join(temp_folder_path, unique_filename)
+                                        csvwriter.writerow(["File path", file_path, mod_date])
+                                        # Check if the destination file already exists
+                                        while os.path.exists(move_path):
+                                            # Append a unique identifier to the filename
+                                            unique_filename = str(uuid.uuid4()) + "_" + filename
+                                            move_path = os.path.join(temp_folder_path, unique_filename)
+                                        # Move the file to the temporary folder with the unique filename
+                                        shutil.move(file_path, move_path)
+                                    else:
+                                        pass
+                # Get disk storage after running the script
+                total_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_blocks
+                free_after = os.statvfs("/application/RPA").f_frsize * os.statvfs("/application/RPA").f_bfree
+
+                # Calculate used space
+                used_before = total_before - free_before
+                used_after = total_after - free_after
+
+                # Convert sizes to human-readable format
+                total_after_str = f"{total_after / (1024 ** 3):.2f} GB"
+                used_after_str = f"{used_after / (1024 ** 3):.2f} GB"
+                free_after_str = f"{free_after / (1024 ** 3):.2f} GB"
+
+                # Print disk storage information after running the script
+                csvwriter.writerow([])  # Empty row for separation
+                csvwriter.writerow(["Disk Storage After Script Execution"])
+                csvwriter.writerow(["Total", total_after_str])
+                csvwriter.writerow(["Used", used_after_str])
+                csvwriter.writerow(["Free", free_after_str])
+
+                zip_filename = f"OldLogDump_{time.strftime('%d%m%Y - %H%M%S')}.zip"
+                zip_path = os.path.join("/application/LogDumps/", zip_filename)
+
+                #Zip the temporary folder
+                shutil.make_archive(temp_folder_path, 'zip', "/application/LogDumps/", temp_folder_name)
+                #deletes the normal folder
+                shutil.rmtree("/application/LogDumps/" + temp_folder_name)
+        except Exception as ex:
+            obj.SystemException = "Cleanup Script failed. Please look into it."
+            raise Exception(f"error:", str(ex))
                 
-            
-
-
-               
-            
-        
-        
-
-            
-
-
-
-
-
-
-
-
-
-
-
