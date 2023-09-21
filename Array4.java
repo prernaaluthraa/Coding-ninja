@@ -58,6 +58,15 @@ class Obj:
                                 csvwriter.writerow(["Deleting zip folder", folder_path, ""])
                                 shutil.rmtree(folder_path)
 
+                # Check for and delete folders older than 7 days
+                for folder_name in os.listdir("/application/LogDumps/"):
+                    folder_path = os.path.join("/application/LogDumps/", folder_name)
+                    if os.path.isdir(folder_path):
+                        folder_mtime = os.path.getmtime(folder_path)
+                        if folder_mtime < seven_days_ago:
+                            print(f"Folder {folder_path} is older than 7 days. Deleting...")
+                            shutil.rmtree(folder_path)
+
                 temp_folder_name = "OldLogDump_" + time.strftime("%d%m%Y-%H%M%S")
                 temp_folder_path = os.path.join("/application/LogDumps/", temp_folder_name)
                 os.makedirs(temp_folder_path)
@@ -99,5 +108,3 @@ class Obj:
         except Exception as ex:
             self.SystemException = "Cleanup Script failed. Please look into it."
             raise Exception(f"error:", str(ex))
-
-            
