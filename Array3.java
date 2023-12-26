@@ -1,150 +1,69 @@
-
-def main():
-    logging.info("Process Started Successfully!")
-    obj=Obj("/application/RPA/LRPU/PLSInvestorRulesAutomation/CONFIG/Config.csv")
-      
-    now= datetime.datetime.now()
-    date = now.strftime("%m/%d/%Y")
-    obj.BotRunDate = date
-    print("bot run date is ",obj.BotRunDate)
-
+    #Forgiveness Lower LTV Limit 10
     try:
-        print("Starting applications")
-        # enable back
-        # inputsql.readDataInputSQL(obj)
-        ib.initApplications(obj)
-
+        forgiveness_lower_ltv_limit = str(obj.forgiveness_lower_ltv_limit)
+        forgivenesslower_element = driver.find_element(By.XPATH, '/html/body/div/div/div[2]/main/div/div/div[2]/div/div/div[3]/form/div[1]/div/div[2]/div/div[2]/div[2]/div[1]/div/div/div/div/table/tbody/tr[10]/td[2]/div/div/div/span/input')
+        forgivenesslower_text = forgivenesslower_element.get_attribute("value")
+        print("Text from the forgivenesslower field", forgivenesslower_text)
+        obj.printlog.info(f"Text from the forgivenesslower field.  {forgivenesslower_text}")
+        if forgiveness_lower_ltv_limit =='NULL' or forgiveness_lower_ltv_limit == 'nan':
+            forgivenesslower_element.send_keys(Keys.CONTROL + "a")
+            forgivenesslower_element.send_keys(Keys.BACKSPACE)
+            obj.row[obj.headerlist.index('FORGIVENESS_LOWER_LTV_LIMIT_Updated (Yes/No)')]= 'NA'
+            print("forgivenesslower done to null")
+            obj.printlog.info("forgivenesslower done to null")
+        else:    
+            if forgivenesslower_text == forgiveness_lower_ltv_limit:
+                obj.row[obj.headerlist.index('FORGIVENESS_LOWER_LTV_LIMIT_Updated (Yes/No)')]= 'NO'
+                print("forgivenesslower in the bkfs field matched with the output")
+                obj.printlog.info("forgivenesslower in the bkfs field matched with the output")
+            else:
+                forgivenesslower_element.send_keys(Keys.CONTROL + "a")
+                forgivenesslower_element.send_keys(Keys.BACKSPACE)
+                forgivenesslower_element.send_keys(forgiveness_lower_ltv_limit)
+                obj.row[obj.headerlist.index('FORGIVENESS_LOWER_LTV_LIMIT_Updated (Yes/No)')]= 'YES'
+                print("forgivenesslower_element replaced.",forgiveness_lower_ltv_limit)
+                obj.printlog.info(f"forgivenesslower_element replaced. : {forgiveness_lower_ltv_limit}")
+    except (TimeoutException, StaleElementReferenceException) as e:
+        traceback.print_exc()           
+        print(f"error:{e}")       
     except Exception as ex:
-        traceback.print_exc()
-        if "BRE" in str(ex):
-            obj.BusinessRuleException=str(ex)
-            obj.printlog.exception(str(ex))
+        raise Exception(f"error:", str(ex))
+
+    #Maturity Restriction Date  11
+    try:
+        time.sleep(2)
+        maturity_date_restriction = str(obj.maturity_restriction_date)
+        maturityrestrict_element = driver.find_element(By.XPATH, '/html/body/div/div/div[2]/main/div/div/div[2]/div/div/div[3]/form/div[1]/div/div[2]/div/div[2]/div[2]/div[1]/div/div/div/div/table/tbody/tr[11]/td[2]/div/div/div/div/div[1]/input')
+        maturityrestrict_text = maturityrestrict_element.get_attribute("value")
+        print("Text from the maturityrestrict field", maturityrestrict_text)
+        obj.printlog.info(f"Text from the maturityrestrict field: {maturityrestrict_text}")
+        if maturity_date_restriction =='NULL' or maturity_date_restriction == 'NaT':
+            maturityrestrict_element.send_keys(Keys.CONTROL + "a")
+            maturityrestrict_element.send_keys(Keys.BACKSPACE)
+            obj.row[obj.headerlist.index('MATURITY_DATE_RESTRICTION_Updated (Yes/No)')] = 'NA'
+            print("maturityrestrict done to null")
+            obj.printlog.info("maturityrestrict done to null")
         else:
-            print("init block has exception")
-            obj.SystemException=str(ex)
-            obj.printlog.error(str(ex))
-
-    try:
-        if obj.BusinessRuleException is None and obj.SystemException is None:
-            
-            while(obj.TransactionItem is not None):
-                
-                obj.SystemException=None
-                obj.BusinessRuleException=None
-                try:
-                    logging.info("Loading of Data!")
-                    GT.loadData(obj)
-                except Exception as ex:
-                    print("in catch of gt"+str(ex))
-                    traceback.print_exc()
-                    message=str(ex)
-                    obj.TransactionItem=None
-                    obj.totalLoans=0
-                    if 'BRE' in message:
-                        obj.BusinessRuleException=message
-                        obj.printlog.exception(message)
-                    else:
-                        print("Load data has exception")
-                        obj.SystemException=message
-                        obj.printlog.error(message)
-                if obj.TransactionItem is None:
-                    print("No more line items")
-                    break
-                
-                print("Processing Transaction Item: "+str(obj.TransactionNumber)+" out of "+str(len(obj.TransactionData))+" ---- Investor ID # "+str(obj.TransactionData1))
-                obj.printlog.info("Processing Transaction Item: "+str(obj.TransactionNumber)+" out of "+str(len(obj.TransactionData))+" ---- Investor ID# "+str(obj.TransactionData1))
-            
-                
-                try:
-                    logging.info("BKFS Investor Rules Process Started")
-                    
-                    pr.inflightPrcs(obj)
-                    # Clear cookies
-                    # driver.delete_all_cookies()
-                    # Close the browser when you're done
-                    # driver.quit()
-                    print("inside try ",obj.TransactionItem)
-                except Exception as ex:
-                    message=str(ex)
-                    if "BRE" not in str(ex):
-                        try:
-                            obj.driver.save_screenshot(obj.config['SS']+str(obj.TransactionData1)+".png")
-                        except:
-                            pass
-                    print("Process error",message)
-                    traceback.print_exc()
-                    
-                    if 'BRE' in message:
-                        obj.BusinessRuleException=message
-                        print("Process BRE error",message)
-                        obj.printlog.exception(message)
-                    elif 'Permission denied' in message or 'EOF' in message:
-                        obj.SystemException='FILE ISSUE'
-                        obj.printlog.error(message)
-                    else:
-                        print("Restarting session")
-                        obj.sessionRestarted=True
-                        obj.driver.close()
-                        ib.initApplications(obj)
-                        obj.SystemException=message
-                        obj.printlog.error(message)
-                finally:
-                    obj.printlog.info("After process")
-                   
-                    TS.setTransactionStatus(obj)
-                    
-                    
-                    
+            parsed_date = dateparser.parse(maturity_date_restriction)
+            if parsed_date:
+                final_date = parsed_date.strftime('%m/%d/%Y')
+                if maturityrestrict_text == final_date:
+                    print("maturityrestrict in the bkfs field matched with the output")
+                    obj.row[obj.headerlist.index('MATURITY_DATE_RESTRICTION_Updated (Yes/No)')] = 'NO'
+                    obj.printlog.info("maturityrestrict in the bkfs field matched with the output")
+                else:
+                    maturityrestrict_element.send_keys(Keys.CONTROL + "a")
+                    maturityrestrict_element.send_keys(Keys.BACKSPACE)
+                    maturityrestrict_element.send_keys(final_date)
+                    print("maturityrestrict_element replaced.", final_date)
+                    obj.row[obj.headerlist.index('MATURITY_DATE_RESTRICTION_Updated (Yes/No)')] = 'YES'
+                    obj.printlog.info("maturityrestrict_element replaced.", final_date)
+            else:
+                print("Invalid date format. can't enter in the field", maturity_date_restriction )
+                obj.row[obj.headerlist.index('MATURITY_DATE_RESTRICTION_Updated (Yes/No)')] = 'NO'
+                obj.printlog.info(f"Invalid date format. can't enter in the field : {maturity_date_restriction}")
+    except (TimeoutException, StaleElementReferenceException) as e:
+        traceback.print_exc()           
+        print(f"error:{e}")       
     except Exception as ex:
-        print(ex)
-        traceback.print_exc()
-
-    finally:
-        try:
-            obj.metrics.writeMetrics(obj)
-            if obj.TransactionNumber>1:
-                obj.outputfile=obj.metrics.createOutputFile(obj)
-                # escalation.escMails(obj) 
-                # obj.TotExpCount=obj.FatcaExpCount+obj.UWExpCount+obj.CmpltPckgExpCount+obj.ValuesPndgExpCount+obj.LetterFailExpCount+obj.DelayLtrExpCount+obj.PndgInvstRvwExpCount
-                # obj.printlog.info(f'Total count of loan categories is : {obj.TotExpCount}')
-                
-                obj.metrics.moveFile(obj)
-     
-        finally:
-            obj.printlog.info("Final outlook mail")  
-            mail.sendOutlookMail(obj)
-        obj.printlog.info("Mail sent Successfully!")
-        obj.printlog.info("Execution Completed Successfully!")
-
-
-
-process.py:
-
-def inflightPrcs(obj):
-   
-    try:
-
-
-        inputmapping(obj)
-        OutputMapping(obj)
-
-
-        # # #FACTCA1 Check####################
-        # fatca.fatca1Check(obj)
-        # # #inverstor call#######################
-
-        new.searchInvestor(obj)
-        element_exists(obj.driver, "/html/body/div/div/div[2]/main/div/div/div[2]/div/div/div[2]/div/div[2]/div/div/div[1]/div[2]/div[3]/div[1]/div/div[2]/div/div/div/div[6]/div/span/button", obj, exists_action=on_edit_exists, Non_exists_action=on_edit_not_exists)
-        
-        if str(obj.INVESTOR_TYPE_NAME) == 'OMS':
-            invcap.InvestorCap(obj)
-        else:
-            print("Investor type name is not OMS. It's :", str(obj.INVESTOR_TYPE_NAME))
-
-
-
-
-
-    except Exception as ex:
-        
-        raise
+        raise Exception(f"error:", str(ex))  
