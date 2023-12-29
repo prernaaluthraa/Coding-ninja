@@ -1,3 +1,2 @@
-Customer Service
-Provide good customer service to BU's, engage with them on regular basis by having meetings as needed, provide needed tools/reports etc to make them independent. Will make sure we are on top of NPS score. Change process and reconfigure as needed based on feedback. Will respond to BU's on timely fashion to make sure there is clear communication b/w the teams.
-
+I take immense pride in excelling at customer service, consistently providing exceptional support to Business Units (BU's). I actively engage with them through regular meetings, ensuring a deep understanding of their needs. I empower them by providing necessary tools and reports, fostering independence. My commitment to maintaining a high Net Promoter Score (NPS) is reflected in my proactive approach to changing processes and reconfiguring systems based on valuable feedback. I prioritize timely responses to Business Units, ensuring clear and effective communication between teams. My dedication to superior customer service has consistently positioned our team at the forefront of client satisfaction within the organization.
+  s
