@@ -1,16 +1,31 @@
-In my leadership role, I consistently exhibit excellence across key dimensions, serving as a model for high standards of professionalism. I prioritize building strong working relationships, fostering collaboration, and promoting diversity, equity, and inclusion to create an inclusive work environment. My commitment to delivering exceptional results is evident in consistently meeting or exceeding performance expectations, contributing to overall team success. I embrace service excellence, striving for the highest quality in every aspect of my work.
+"Go to Director >P2> Enter Loan No in Loan No field > Hit Enter
+Go to DLQ2 screen 
+(a) Check if DLQ2 is set up
+If yes ; follow below point (b)
+If No ; tag an exception - DLQ2 not set up
 
-In Risk & Compliance, I rigorously adhere to regulations, identify and address issues proactively, and escalate them appropriately, demonstrating a thorough understanding and application of risk and compliance principles. I prioritize compliance training to stay updated on industry standards and best practices, maintaining a high level of proficiency in this critical area.
+(b) Refer TYP: field It is reflect Plan Type as "" 22 , 44 , 31 , 46 , 55 , 56 , 3 ""
+If yes ; follow below point (c)
+If No ; tag an exception - PLAN TYPE not equal to Final Mod
 
-Over the past year, my commitment to excellence is reflected in maintaining a flawless record in completing all assigned trainings and obligations on time, achieving a 100% completion rate. In L1 activities, my precision and diligence resulted in a perfect success rate in code migration, with strategic recommendations leading to a remarkable 50% reduction in failures.
-
-In development, I successfully led the execution of Project Romeo - BKFS PLS Investor Rules and seamlessly transitioned to lead the BKFS Final Mod project, implementing enhancements based on Business Units' requirements. I efficiently make and test changes in the code as per Business Units requirements, ensuring timely delivery of required results.
-
-My involvement in Experimentation initiatives showcases my adaptability, technical expertise, and proactive leadership. I contribute to customer service by providing proactive updates, reconfigurations of bots, and clear communication, ensuring client satisfaction and contributing to the organization's success.
-
-These multifaceted contributions underscore my value as a valuable asset to the organization, positioning me as a key contributor to client satisfaction and overall success.
-
+(c) Refer PLAN STATUS = KEPT
+If Yes than procced to next step
+If No > than Refer Summary of Plans in Last 24 Months Header
+Check if KEPT is reflecting below this header Summary > If yes than compare the date it should be the recent one  from all other status ( like Broken , Deleted , Changes , Expired) - Note : BOT to refer the date available in 3rd column below this header
+If KEPT date is recent from all other Status than proceed to next step
+If KEPT date if older than other status than tag an exception - DQL2 not equal to KEPT"
 
 
+"Go to Director >P2> Enter Loan No in Loan No field > Hit Enter
+Go to DLQ2 screen 
+(a) Check if DLQ2 is set up
+If yes ; follow below point (b)
+If No ; tag an exception - DLQ2 not set up
 
-User
+(b) Refer TYP: field It is reflect Plan Type as "" 22 , 44 , 31 , 46 , 55 , 56 , 3 ""
+If yes ; follow below point (c)
+If No ; tag an exception - PLAN TYPE not equal to Final Mod
+
+(c) Refer PLAN STATUS = KEPT
+If Yes than procced to next step
+If No ; tag an exception - DQL2 not equal to KEPT"
