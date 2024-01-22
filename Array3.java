@@ -1,31 +1,30 @@
-"Go to Director >P2> Enter Loan No in Loan No field > Hit Enter
-Go to DLQ2 screen 
-(a) Check if DLQ2 is set up
-If yes ; follow below point (b)
-If No ; tag an exception - DLQ2 not set up
+Open Terminal Session:
 
-(b) Refer TYP: field It is reflect Plan Type as "" 22 , 44 , 31 , 46 , 55 , 56 , 3 ""
-If yes ; follow below point (c)
-If No ; tag an exception - PLAN TYPE not equal to Final Mod
+Use the "Attach Terminal" activity:
+Set the ConnectionType property to the appropriate terminal type.
+Configure the ConnectionString property to provide connection details or indicate the terminal window.
+Navigate to Summary of Plans in Last 24 Months Header:
 
-(c) Refer PLAN STATUS = KEPT
-If Yes than procced to next step
-If No > than Refer Summary of Plans in Last 24 Months Header
-Check if KEPT is reflecting below this header Summary > If yes than compare the date it should be the recent one  from all other status ( like Broken , Deleted , Changes , Expired) - Note : BOT to refer the date available in 3rd column below this header
-If KEPT date is recent from all other Status than proceed to next step
-If KEPT date if older than other status than tag an exception - DQL2 not equal to KEPT"
+Use activities like "Send Control Key" or "Type Into":
+Send appropriate keys or commands to navigate to the "Summary of Plans in Last 24 Months" section.
+Check if KEPT is Reflecting:
 
+Use the "Get Text" activity:
+Set the Selector property to indicate the third column below the header.
+Assign the extracted text to a variable (ExtractedText).
+Use a condition or string manipulation to check if "KEPT" is present in ExtractedText.
+Extract Dates for KEPT and Other Statuses:
 
-"Go to Director >P2> Enter Loan No in Loan No field > Hit Enter
-Go to DLQ2 screen 
-(a) Check if DLQ2 is set up
-If yes ; follow below point (b)
-If No ; tag an exception - DLQ2 not set up
+Use multiple "Get Text" activities:
+Set selectors to extract dates for "Broken," "Deleted," "Changes," "Expired," and "KEPT" from the third column below the header.
+Assign each extracted date to a corresponding variable (e.g., BrokenDate, DeletedDate, etc.).
+Compare Dates:
 
-(b) Refer TYP: field It is reflect Plan Type as "" 22 , 44 , 31 , 46 , 55 , 56 , 3 ""
-If yes ; follow below point (c)
-If No ; tag an exception - PLAN TYPE not equal to Final Mod
+Use programming constructs (e.g., If statements):
+Compare the dates using conditions. You might need to convert the date strings to DateTime objects for accurate comparison.
+Decide whether the date associated with "KEPT" is more recent than the other statuses.
+Handle Exception if KEPT Date is Older:
 
-(c) Refer PLAN STATUS = KEPT
-If Yes than procced to next step
-If No ; tag an exception - DQL2 not equal to KEPT"
+Use the "Log Message" activity or "Throw" activity:
+If the date associated with "KEPT" is older than the other statuses, log an exception or use the "Throw" activity to stop the execution.
+Here's
