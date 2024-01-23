@@ -1,19 +1,30 @@
-if(String.IsNullOrEmpty(in_TransactionItem("PTFCAP_AMOUNT").ToString.Trim),"0",in_TransactionItem("PTFCAP_AMOUNT").ToString.Trim)
-
-FHA
-"Update Plan Terms > Navigate to Plan Terms Header > Refer Do you want to add an additional month to the Workout Effective Date? field >
-Go to  to BIS Input File > Navigate to column name MED and Mod Proccessing Pad > consider the date available below these column and perform below steps to check if Slider needs to move towards "" Yes ""  or "" No ""
--- If the days difference between  MED and Mod Proccessing Pad column is less than 30 days or negative > than move the slider towards "" Yes "" otherwise don't move the slider i.e it should be towards "" No "" and procced to next step
-For Example
-Med Date - 2/1/2024 (-) Mod Proccessing Pad - 11/09/2023 = Days Difference =  84 ( No need to move slider it should be towards "" No "" )
-Med Date - 2/1/2024 (-) Mod Proccessing Pad - 01/03/2024 = Days Difference =  29 ( Move the slider towards "" Yes "" )
-Med Date - 2/1/2024 (-) Mod Proccessing Pad - 02/02/2024 = Days Difference =  -1 ( Move the slider towards "" Yes "" )"
-
-
-FHLMC-FNMA
-"If Workout Plan fields reflects Flex Modification (SMDU) - No action required from BOT
-If Workout Plan field reflects Flex Modification (Resolve) or FNMA Non-SMDU - than follow below
-Update Plan Terms -
-Navigate to Plan Terms Header > Refer Do you want to add an additional month to the Workout Effective Date? field > GO to BIS input file > Navigate to column name LAST TRIAL PAYMENT MADE DATE and Column name Trial Due dates end month consider the date available below these column and perform below steps to check if Slider needs to move towards "" Yes ""  or "" No ""
--- Compare the last trial payment made date with Trial due end month if the date below last trial payment made is greater than the trial due date end month than move the slider towards "" Yes "" 
---Compare the last trial payment made date with Trial due end month if the date below last trial payment made is less than Trial due end month  don't move the slider i.e it should be towards "" No "" and  procced to next step"
+"Go to Director >P2> Enter Loan No in Loan No field > Hit Enter
+Go to LMT3 screen > Under STEP field > Check for M89 
+Navigate to ACT field of M89 > Type C"" in box under ACT field of M89
+Navigate to ACTUAL field of M89 > Type BOT Review Date MMDDYY > Press Enter
+Type ( FINAL MODIFICATION CALCULATED ) in box line against M89 ACT field > Press Enter and follow below basis on Workout Plan"
+"i. If Workout Plan = Standalone Partial Claim 
+Go to LMT3 screen > Under STEP field > Check for L61 
+Navigate to ACT field of L61 > Type C"" in box under ACT field of L61
+Navigate to ACTUAL field of L61 > Type BOT Review Date MMDDYY > Press Enter
+Type ( FINAL MODIFICATION CALCULATED ) in box line against L61 ACT field > Press Enter"
+"ii. If Workout Plan = Recovery without PC – 30 Year
+Go to LMT3 screen > Under STEP field > Check for L62 
+Navigate to ACT field of L62 > Type C"" in box under ACT field of L62
+Navigate to ACTUAL field of L62 > Type BOT Review Date MMDDYY > Press Enter
+Type ( FINAL MODIFICATION CALCULATED ) in box line against L62 ACT field > Press Enter"
+"iii. If Workout Plan = Recovery with PC – 30 Year
+Go to LMT3 screen > Under STEP field > Check for L62 
+Navigate to ACT field of L62 and L67  > Type C"" in box under ACT field of L62 and L67
+Navigate to ACTUAL field of L62 and L67 > Type BOT Review Date MMDDYY > Press Enter
+Type ( FINAL MODIFICATION CALCULATED ) in box line against L62 and L67 ACT field > Press Enter"
+"iv. If Workout Plan = Recovery without PC – 40 Year
+Go to LMT3 screen > Under STEP field > Check for L63
+Navigate to ACT field of L63  > Type C"" in box under ACT field of L63
+Navigate to ACTUAL field of L63 > Type BOT Review Date MMDDYY > Press Enter
+Type ( FINAL MODIFICATION CALCULATED ) in box line against L63 ACT field > Press Enter"
+"v. If Workout Plan = Recovery with PC – 40 Year
+Go to LMT3 screen > Under STEP field > Check for L63 and L67
+Navigate to ACT field of L63 and L67  > Type C"" in box under ACT field of L63 and L67
+Navigate to ACTUAL field of L63 and L67 > Type BOT Review Date MMDDYY > Press Enter
+Type ( FINAL MODIFICATION CALCULATED ) in box line against L63 and L67 ACT field > Press Enter"
