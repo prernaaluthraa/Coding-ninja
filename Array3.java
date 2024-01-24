@@ -1,8 +1,5 @@
-function getValue(element,inputElement) 
-{
-myDivObj = document.querySelector(inputElement).checked
-return myDivObj
-}
+"MED date from input is :"+in_TransactionItem("MED").ToString
 
-input parameter
-"input[id='manualInput.additionalInterimMonthIndicator']"
+MED date from input is :05/01/2024 00:00:00
+
+Datetime.ParseExact(in_TransactionItem("MED").ToString, “MMddyy” ,System.Globalization.CultureInfo.InvariantCulture)
