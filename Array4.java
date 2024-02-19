@@ -175,3 +175,23 @@
             obj.SystemException = "Cleanup Script failed. Please look into it."
             raise Exception(f"error:", str(ex))
                 
+
+def cleanup(obj):
+    try:
+        rpa_path = "/application/RPA"
+        common_path = "/application/RPA/COMMON"
+        ocr_path = "/application/RPA/COMMON/OCR"
+        # ... (rest of the code remains unchanged)
+
+        # Move files in the OCR folder
+        for root, dirs, files in os.walk(rpa_path):
+            if common_path in root and root != ocr_path:
+                # Skip folders under /application/RPA/COMMON except /application/RPA/COMMON/OCR
+                continue
+
+            for folder_name in folders_to_check:
+                folder_path = os.path.join(root, folder_name)
+                csvwriter.writerow(["Checking", folder_path, ""])
+
+                if folder_name == "LOGS":
+   
